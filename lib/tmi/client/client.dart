@@ -19,6 +19,7 @@ import '../../providers/badge_provider.dart';
 import '../../providers/chatsen.dart';
 import '../../providers/emote_provider.dart';
 import '../cache.dart';
+import '../channel/channel.dart';
 import '../channel/messages/channel_message_ban.dart';
 import '../channel/messages/channel_message_notice.dart';
 import '../emotes.dart';
@@ -169,6 +170,30 @@ class Client {
     cache?.saveUserBadges(EmoteBadgeCache.globalUserBadgesKey, merged);
   }
 
+  void insertHistoryMessages(Connection connection, List<String> messages) {
+    for (final message in messages) {
+      final ircMessage = irc.Message.fromEvent(message);
+      if (ircMessage.command == 'ROOMSTATE') continue;
+      receive(connection, ircMessage);
+    }
+  }
+
+  /// Lazily fetch recent-messages for [channel] (e.g. when its chat view is
+  /// first opened). De-duplication in ChannelMessages.add drops anything
+  /// already inserted from the cache.
+  Future<void> ensureRecentMessages(Channel channel) async {
+    if (channel.recentMessagesFetched) return;
+    channel.recentMessagesFetched = true;
+    final channelLogin = channel.name.substring(1);
+    try {
+      final list = await RecentMessages.channel(channelLogin);
+      cache?.saveHistory(channelLogin, list);
+      insertHistoryMessages(receiver, list);
+    } catch (_) {
+      channel.recentMessagesFetched = false;
+    }
+  }
+
   Future<void> connectAs(TwitchAccount twitchAccount) async {
     receiver.add(ConnectionConnect(twitchAccount));
     transmitter.add(ConnectionConnect(twitchAccount));
@@ -227,12 +252,7 @@ class Client {
         if (loginSource == credentials.tokenData.login) {
           channel.add(ChannelConnect());
           final channelLogin = channel.name.substring(1);
-          final cachedHistory = cache?.loadHistory(channelLogin) ?? const <String>[];
-          channel.pendingHistoryCached = cachedHistory;
-          channel.pendingHistory = RecentMessages.channel(channelLogin).then((list) {
-            cache?.saveHistory(channelLogin, list);
-            return list;
-          }).catchError((_) => <String>[]);
+          channel.pendingHistoryCached = cache?.loadHistory(channelLogin) ?? const <String>[];
         }
         break;
       case 'USERNOTICE':
@@ -267,24 +287,10 @@ class Client {
         channel.id = event.tags['room-id'];
         await channel.refresh();
 
-        void insertHistory(List<String> history) {
-          for (final message in history) {
-            final ircMessage = irc.Message.fromEvent(message);
-            if (ircMessage.command == 'ROOMSTATE') continue;
-            receive(connection, ircMessage);
-          }
-        }
-
         final cachedHistory = channel.pendingHistoryCached;
         if (cachedHistory.isNotEmpty) {
           channel.pendingHistoryCached = const [];
-          insertHistory(cachedHistory);
-        }
-
-        final pending = channel.pendingHistory;
-        if (pending != null) {
-          channel.pendingHistory = null;
-          insertHistory(await pending);
+          insertHistoryMessages(connection, cachedHistory);
         }
         break;
       case 'CLEARCHAT':
