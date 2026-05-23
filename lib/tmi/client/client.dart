@@ -196,11 +196,7 @@ class Client {
         final loginSource = event.prefix?.split('!').first;
         if (loginSource == credentials.tokenData.login) {
           channel.add(ChannelConnect());
-          for (final message in (await RecentMessages.channel(channel.name.substring(1)))) {
-            final ircMessage = irc.Message.fromEvent(message);
-            if (ircMessage.command == 'ROOMSTATE') continue;
-            receive(connection, ircMessage);
-          }
+          channel.pendingHistory = RecentMessages.channel(channel.name.substring(1)).catchError((_) => <String>[]);
         }
         break;
       case 'USERNOTICE':
@@ -234,6 +230,17 @@ class Client {
 
         channel.id = event.tags['room-id'];
         await channel.refresh();
+
+        final pending = channel.pendingHistory;
+        if (pending != null) {
+          channel.pendingHistory = null;
+          final history = await pending;
+          for (final message in history) {
+            final ircMessage = irc.Message.fromEvent(message);
+            if (ircMessage.command == 'ROOMSTATE') continue;
+            receive(connection, ircMessage);
+          }
+        }
         break;
       case 'CLEARCHAT':
         final channelName = event.parameters[0];

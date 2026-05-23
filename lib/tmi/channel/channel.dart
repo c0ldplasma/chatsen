@@ -26,6 +26,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   String name;
   Timer? suspensionTimer;
   ChannelMessages channelMessages = ChannelMessages();
+  Future<List<String>>? pendingHistory;
   Emotes channelEmotes = Emotes();
   Badges channelBadges = Badges();
   ChannelInfo channelInfo = ChannelInfo();
