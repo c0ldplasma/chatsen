@@ -39,6 +39,7 @@ class _ChatViewState extends State<ChatView> {
   @override
   void initState() {
     super.initState();
+    widget.channel.client.ensureRecentMessages(widget.channel);
   }
 
   @override
