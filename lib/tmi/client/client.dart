@@ -226,7 +226,13 @@ class Client {
         final loginSource = event.prefix?.split('!').first;
         if (loginSource == credentials.tokenData.login) {
           channel.add(ChannelConnect());
-          channel.pendingHistory = RecentMessages.channel(channel.name.substring(1)).catchError((_) => <String>[]);
+          final channelLogin = channel.name.substring(1);
+          final cachedHistory = cache?.loadHistory(channelLogin) ?? const <String>[];
+          channel.pendingHistoryCached = cachedHistory;
+          channel.pendingHistory = RecentMessages.channel(channelLogin).then((list) {
+            cache?.saveHistory(channelLogin, list);
+            return list;
+          }).catchError((_) => <String>[]);
         }
         break;
       case 'USERNOTICE':
@@ -261,15 +267,24 @@ class Client {
         channel.id = event.tags['room-id'];
         await channel.refresh();
 
-        final pending = channel.pendingHistory;
-        if (pending != null) {
-          channel.pendingHistory = null;
-          final history = await pending;
+        void insertHistory(List<String> history) {
           for (final message in history) {
             final ircMessage = irc.Message.fromEvent(message);
             if (ircMessage.command == 'ROOMSTATE') continue;
             receive(connection, ircMessage);
           }
+        }
+
+        final cachedHistory = channel.pendingHistoryCached;
+        if (cachedHistory.isNotEmpty) {
+          channel.pendingHistoryCached = const [];
+          insertHistory(cachedHistory);
+        }
+
+        final pending = channel.pendingHistory;
+        if (pending != null) {
+          channel.pendingHistory = null;
+          insertHistory(await pending);
         }
         break;
       case 'CLEARCHAT':

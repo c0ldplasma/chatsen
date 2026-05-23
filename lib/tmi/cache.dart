@@ -157,4 +157,20 @@ class EmoteBadgeCache {
   static const String globalEmotesKey = 'globalEmotes';
   static const String globalBadgesKey = 'globalBadges';
   static const String globalUserBadgesKey = 'globalUserBadges';
+
+  String _historyKey(String channelLogin) => 'history:$channelLogin';
+
+  List<String> loadHistory(String channelLogin) {
+    final raw = box.get(_historyKey(channelLogin));
+    if (raw is! String) return const [];
+    try {
+      final decoded = json.decode(raw);
+      if (decoded is List) return List<String>.from(decoded);
+    } catch (_) {}
+    return const [];
+  }
+
+  Future<void> saveHistory(String channelLogin, List<String> messages) {
+    return box.put(_historyKey(channelLogin), json.encode(messages));
+  }
 }
