@@ -142,33 +142,37 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   Future<void> refreshEmotes() async {
     if (id == null) throw 'invalid channel id';
 
-    final emotes = <Emote>[];
     final emoteProviders = client.providers.whereType<EmoteProvider>();
-    for (final emoteProvider in emoteProviders) {
-      try {
-        emotes.addAll(await emoteProvider.channelEmotes(id!));
-      } catch (e) {
-        log('Couldn\'t get ${emoteProvider.name} channel emotes for $name ($id)');
-      }
-    }
+    final results = await Future.wait(
+      emoteProviders.map((emoteProvider) async {
+        try {
+          return await emoteProvider.channelEmotes(id!);
+        } catch (e) {
+          log('Couldn\'t get ${emoteProvider.name} channel emotes for $name ($id)');
+          return <Emote>[];
+        }
+      }),
+    );
 
-    channelEmotes.emit(emotes);
+    channelEmotes.emit([for (final list in results) ...list]);
   }
 
   Future<void> refreshBadges() async {
     if (id == null) throw 'invalid channel id';
 
-    final badges = <CustomBadge>[];
     final badgeProviders = client.providers.whereType<BadgeProvider>();
-    for (final badgeProvider in badgeProviders) {
-      try {
-        badges.addAll(await badgeProvider.channelBadges(id!));
-      } catch (e) {
-        log('Couldn\'t get ${badgeProvider.name} channel badges for $name ($id)');
-      }
-    }
+    final results = await Future.wait(
+      badgeProviders.map((badgeProvider) async {
+        try {
+          return await badgeProvider.channelBadges(id!);
+        } catch (e) {
+          log('Couldn\'t get ${badgeProvider.name} channel badges for $name ($id)');
+          return <CustomBadge>[];
+        }
+      }),
+    );
 
-    channelBadges.emit(badges);
+    channelBadges.emit([for (final list in results) ...list]);
   }
 
   Future<void> refreshChannelUser() async {
