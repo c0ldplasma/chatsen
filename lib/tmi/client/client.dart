@@ -99,44 +99,48 @@ class Client {
   }
 
   Future<void> refreshGlobalEmotes() async {
-    final emotes = <Emote>[];
     final emoteProviders = providers.whereType<EmoteProvider>();
-    for (final emoteProvider in emoteProviders) {
-      try {
-        emotes.addAll(await emoteProvider.globalEmotes());
-      } catch (e) {
-        log('Couldn\'t get ${emoteProvider.name} global emotes');
-      }
-    }
-    globalEmotes.change(emotes);
+    final results = await Future.wait(
+      emoteProviders.map((emoteProvider) async {
+        try {
+          return await emoteProvider.globalEmotes();
+        } catch (e) {
+          log('Couldn\'t get ${emoteProvider.name} global emotes');
+          return <Emote>[];
+        }
+      }),
+    );
+    globalEmotes.change([for (final list in results) ...list]);
   }
 
   Future<void> refreshGlobalBadges() async {
-    final badges = <CustomBadge>[];
     final badgeProviders = providers.whereType<BadgeProvider>();
-    for (final badgeProvider in badgeProviders) {
-      try {
-        badges.addAll(await badgeProvider.globalBadges());
-      } catch (e) {
-        log('Couldn\'t get ${badgeProvider.name} global badges');
-      }
-    }
-
-    globalBadges.change(badges);
+    final results = await Future.wait(
+      badgeProviders.map((badgeProvider) async {
+        try {
+          return await badgeProvider.globalBadges();
+        } catch (e) {
+          log('Couldn\'t get ${badgeProvider.name} global badges');
+          return <CustomBadge>[];
+        }
+      }),
+    );
+    globalBadges.change([for (final list in results) ...list]);
   }
 
   Future<void> refreshGlobalUserBadges() async {
-    final badges = <BadgeUsers>[];
     final badgeProviders = providers.whereType<BadgeProvider>();
-    for (final badgeProvider in badgeProviders) {
-      try {
-        badges.addAll(await badgeProvider.globalUserBadges());
-      } catch (e) {
-        log('Couldn\'t get ${badgeProvider.name} global badges');
-      }
-    }
-
-    globalUserBadges.change(badges);
+    final results = await Future.wait(
+      badgeProviders.map((badgeProvider) async {
+        try {
+          return await badgeProvider.globalUserBadges();
+        } catch (e) {
+          log('Couldn\'t get ${badgeProvider.name} global user badges');
+          return <BadgeUsers>[];
+        }
+      }),
+    );
+    globalUserBadges.change([for (final list in results) ...list]);
   }
 
   Future<void> connectAs(TwitchAccount twitchAccount) async {
