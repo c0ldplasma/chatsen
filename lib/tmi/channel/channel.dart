@@ -7,6 +7,7 @@ import 'package:chatsen/tmi/channel/channel_chatters.dart';
 import '/api/chatsen/chatsen.dart';
 import '/data/custom_badge.dart';
 import '/data/emote.dart';
+import '../cache.dart';
 import '../client/client.dart';
 import '../emotes.dart';
 import '/tmi/channel/channel_event.dart';
@@ -124,6 +125,8 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   }
 
   Future<void> refresh() async {
+    _hydrateFromCache();
+
     final emotesFuture = refreshEmotes();
     final badgesFuture = refreshBadges();
     final refreshChannelFuture = refreshChannelUser();
@@ -154,7 +157,10 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
       }),
     );
 
-    channelEmotes.emit([for (final list in results) ...list]);
+    final merged = [for (final list in results) ...list];
+    channelEmotes.emit(merged);
+    final cache = client.cache;
+    if (cache != null) cache.saveEmotes(cache.channelEmotesKey(id!), merged);
   }
 
   Future<void> refreshBadges() async {
@@ -172,7 +178,24 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
       }),
     );
 
-    channelBadges.emit([for (final list in results) ...list]);
+    final merged = [for (final list in results) ...list];
+    channelBadges.emit(merged);
+    final cache = client.cache;
+    if (cache != null) cache.saveBadges(cache.channelBadgesKey(id!), merged);
+  }
+
+  void _hydrateFromCache() {
+    final cache = client.cache;
+    final channelId = id;
+    if (cache == null || channelId == null) return;
+    if (channelEmotes.state.isEmpty) {
+      final cached = cache.loadEmotes(cache.channelEmotesKey(channelId));
+      if (cached.isNotEmpty) channelEmotes.emit(cached);
+    }
+    if (channelBadges.state.isEmpty) {
+      final cached = cache.loadBadges(cache.channelBadgesKey(channelId));
+      if (cached.isNotEmpty) channelBadges.emit(cached);
+    }
   }
 
   Future<void> refreshChannelUser() async {

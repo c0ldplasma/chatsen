@@ -60,6 +60,7 @@ Future<void> main() async {
   final accountSettingsBox = await Hive.openBox('AccountSettings');
   final settingsBox = await Hive.openBox('Settings');
   final channelsBox = await Hive.openBox('Channels');
+  final emoteBadgeCacheBox = await Hive.openBox('EmoteBadgeCache');
 
   final messageTriggersBox = await Hive.openBox('MessageTriggers');
   final userTriggersBox = await Hive.openBox('UserTriggers');
@@ -97,6 +98,7 @@ Future<void> main() async {
           create: (context) => Client(
             twitchAccount: activeTwitchAccount,
             channelsBox: channelsBox,
+            cacheBox: emoteBadgeCacheBox,
           ),
         ),
         Provider<BrowserState>(create: (context) => BrowserState()),

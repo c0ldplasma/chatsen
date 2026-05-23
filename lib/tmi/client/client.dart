@@ -18,6 +18,7 @@ import '../../data/emote.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/chatsen.dart';
 import '../../providers/emote_provider.dart';
+import '../cache.dart';
 import '../channel/messages/channel_message_ban.dart';
 import '../channel/messages/channel_message_notice.dart';
 import '../emotes.dart';
@@ -53,6 +54,7 @@ class Client {
   ];
 
   late ClientChannels channels;
+  EmoteBadgeCache? cache;
 
   List<ClientListener> listeners = [];
 
@@ -65,11 +67,17 @@ class Client {
   Client({
     TwitchAccount? twitchAccount,
     required Box channelsBox,
+    Box? cacheBox,
   }) {
     channels = ClientChannels(
       this,
       channelsBox: channelsBox,
     );
+
+    if (cacheBox != null) {
+      cache = EmoteBadgeCache(box: cacheBox, providers: providers);
+      _hydrateGlobalsFromCache();
+    }
 
     // Twitch IRC allows ~20 JOIN commands per 10 seconds for normal users.
     // Stay well under the limit: 4 channels every 2s = 2/s.
@@ -99,6 +107,17 @@ class Client {
     refreshGlobalUserBadges();
   }
 
+  void _hydrateGlobalsFromCache() {
+    final c = cache;
+    if (c == null) return;
+    final emotes = c.loadEmotes(EmoteBadgeCache.globalEmotesKey);
+    if (emotes.isNotEmpty) globalEmotes.change(emotes);
+    final badges = c.loadBadges(EmoteBadgeCache.globalBadgesKey);
+    if (badges.isNotEmpty) globalBadges.change(badges);
+    final userBadges = c.loadUserBadges(EmoteBadgeCache.globalUserBadgesKey);
+    if (userBadges.isNotEmpty) globalUserBadges.change(userBadges);
+  }
+
   Future<void> refreshGlobalEmotes() async {
     final emoteProviders = providers.whereType<EmoteProvider>();
     final results = await Future.wait(
@@ -111,7 +130,9 @@ class Client {
         }
       }),
     );
-    globalEmotes.change([for (final list in results) ...list]);
+    final merged = [for (final list in results) ...list];
+    globalEmotes.change(merged);
+    cache?.saveEmotes(EmoteBadgeCache.globalEmotesKey, merged);
   }
 
   Future<void> refreshGlobalBadges() async {
@@ -126,7 +147,9 @@ class Client {
         }
       }),
     );
-    globalBadges.change([for (final list in results) ...list]);
+    final merged = [for (final list in results) ...list];
+    globalBadges.change(merged);
+    cache?.saveBadges(EmoteBadgeCache.globalBadgesKey, merged);
   }
 
   Future<void> refreshGlobalUserBadges() async {
@@ -141,7 +164,9 @@ class Client {
         }
       }),
     );
-    globalUserBadges.change([for (final list in results) ...list]);
+    final merged = [for (final list in results) ...list];
+    globalUserBadges.change(merged);
+    cache?.saveUserBadges(EmoteBadgeCache.globalUserBadgesKey, merged);
   }
 
   Future<void> connectAs(TwitchAccount twitchAccount) async {
