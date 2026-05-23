@@ -71,14 +71,15 @@ class Client {
       channelsBox: channelsBox,
     );
 
+    // Twitch IRC allows ~20 JOIN commands per 10 seconds for normal users.
+    // Stay well under the limit: 4 channels every 2s = 2/s.
+    const joinBatchSize = 4;
     Timer.periodic(
       const Duration(seconds: 2),
       (timer) {
         if (receiver.state is ConnectionConnected) {
-          const double tmiJoinPerSecond = 20.0 / 30.0;
-          final channelsToJoin = channels.state.where((channel) => channel.state is ChannelDisconnected).take((tmiJoinPerSecond * 2).floor());
+          final channelsToJoin = channels.state.where((channel) => channel.state is ChannelDisconnected).take(joinBatchSize).toList();
           if (channelsToJoin.isEmpty) return;
-          print(channelsToJoin.map((e) => e.name).join(','));
           for (final channel in channelsToJoin) {
             channel.add(ChannelJoin(receiver, transmitter));
           }
