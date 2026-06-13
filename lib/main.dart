@@ -61,6 +61,7 @@ Future<void> main() async {
   final settingsBox = await Hive.openBox('Settings');
   final channelsBox = await Hive.openBox('Channels');
   final emoteBadgeCacheBox = await Hive.openBox('EmoteBadgeCache');
+  await Hive.openBox('SeenMentions');
 
   final messageTriggersBox = await Hive.openBox('MessageTriggers');
   final userTriggersBox = await Hive.openBox('UserTriggers');
