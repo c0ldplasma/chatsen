@@ -55,10 +55,34 @@ class _AppState extends State<App> implements ClientListener {
   Future<ChannelMessage> onMessageReceived(ChannelMessage message) async {
     if (message is ChannelMessageChat) {
       if (message.mentionned) {
-        BlocProvider.of<NotificationsCubit>(context).add(message);
+        // The message stays visually highlighted regardless; we only avoid
+        // re-adding a notification for a mention we already surfaced in a
+        // previous session (e.g. when it comes back via history on launch).
+        final box = Hive.box('SeenMentions');
+        if (!box.containsKey(message.id)) {
+          BlocProvider.of<NotificationsCubit>(context).add(message);
+          _markMentionSeen(message.id);
+        }
       }
     }
     return message;
+  }
+
+  static const int _seenMentionMaxEntries = 500;
+
+  void _markMentionSeen(String messageId) {
+    if (messageId.isEmpty) return;
+    final box = Hive.box('SeenMentions');
+    if (box.containsKey(messageId)) return;
+    box.put(messageId, DateTime.now().millisecondsSinceEpoch);
+    if (box.length > _seenMentionMaxEntries) {
+      // Trim oldest entries (lowest stored timestamps) so the box doesn't
+      // grow unbounded across sessions.
+      final entries = box.toMap().entries.toList()
+        ..sort((a, b) => (a.value as int).compareTo(b.value as int));
+      final toRemove = entries.take(box.length - _seenMentionMaxEntries).map((e) => e.key).toList();
+      box.deleteAll(toRemove);
+    }
   }
 
   @override
