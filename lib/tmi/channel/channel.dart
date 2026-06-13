@@ -154,12 +154,15 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   }
 
   Future<void> refresh() async {
-    _hydrateFromCache();
-
-    // Signature of the emote/badge set we rendered messages against, so we can
-    // skip the expensive full rebuild when the network refresh returns the
-    // same data we already hydrated from cache (the common case on launch).
+    // Capture the signature BEFORE hydrating: messages may have already been
+    // built against an empty emote set (e.g. the chat view eagerly inserts
+    // history before ROOMSTATE). If we sampled after hydrate, an empty->cache
+    // jump would be invisible and — when the network returns the same set as
+    // the cache — the rebuild would be skipped, leaving those early messages
+    // showing emote codes as plain text.
     final before = _emoteBadgeSignature();
+
+    _hydrateFromCache();
 
     final emotesFuture = refreshEmotes();
     final badgesFuture = refreshBadges();
