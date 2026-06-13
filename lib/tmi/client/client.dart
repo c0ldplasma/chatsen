@@ -71,15 +71,20 @@ class Client {
     required Box channelsBox,
     Box? cacheBox,
   }) {
-    channels = ClientChannels(
-      this,
-      channelsBox: channelsBox,
-    );
-
+    // Set up the cache before constructing channels so each Channel can
+    // hydrate its emotes/badges from disk in its constructor (channels are
+    // created inside ClientChannels). Otherwise the cache is still null when
+    // they hydrate and third-party emotes won't resolve until the network
+    // refresh lands.
     if (cacheBox != null) {
       cache = EmoteBadgeCache(box: cacheBox, providers: providers);
       _hydrateGlobalsFromCache();
     }
+
+    channels = ClientChannels(
+      this,
+      channelsBox: channelsBox,
+    );
 
     // Twitch IRC allows ~20 JOIN commands per 10 seconds for normal users.
     // Stay well under the limit: 4 channels every 2s = 2/s.
