@@ -86,31 +86,18 @@ class Client {
       channelsBox: channelsBox,
     );
 
-    // Twitch IRC allows ~20 JOIN commands per 10 seconds for normal users.
-    // Stay well under the limit: 4 channels every 2s = 2/s.
-    const joinBatchSize = 4;
-    Timer.periodic(
-      const Duration(seconds: 2),
-      (timer) {
-        if (receiver.state is ConnectionConnected) {
-          final disconnected = channels.state.where((channel) => channel.state is ChannelDisconnected).toList();
-          if (disconnected.isEmpty) return;
-          // Prioritize channels the user has explicitly requested (e.g. via
-          // ensureRecentMessages when opening a chat view) so the active
-          // channel is JOINed first and live messages don't get dropped
-          // while we wait for the rest of the queue.
-          disconnected.sort((a, b) {
-            if (a.joinPriority == b.joinPriority) return 0;
-            return a.joinPriority ? -1 : 1;
-          });
-          final channelsToJoin = disconnected.take(joinBatchSize).toList();
-          for (final channel in channelsToJoin) {
-            channel.add(ChannelJoin(receiver, transmitter));
-          }
-          receiver.send('JOIN ${channelsToJoin.map((e) => e.name).join(',')}');
-        }
-      },
-    );
+    // Prioritize the channel the user last had open so it lands in the first
+    // (larger) JOIN burst and comes up before the rest of the list.
+    final lastChannel = Hive.box('Settings').get('lastChannel');
+    if (lastChannel is String && lastChannel.isNotEmpty) {
+      channels.state.firstWhereOrNull((c) => c.name == lastChannel)?.joinPriority = true;
+    }
+
+    // Drain the join queue on a timer as a steady-state fallback, but also
+    // trigger an immediate pass as soon as the connection is established
+    // (see _joinPass call on the 001 handler) so we don't idle up to 2s
+    // waiting for the first tick.
+    Timer.periodic(const Duration(seconds: 2), (timer) => _joinPass());
 
     receiver.onReceive = receive;
     transmitter.onReceive = receive;
@@ -185,45 +172,80 @@ class Client {
     cache?.saveUserBadges(EmoteBadgeCache.globalUserBadgesKey, merged);
   }
 
+  // Twitch IRC allows ~20 JOIN commands per 10 seconds for normal users. The
+  // first pass after connecting joins a larger burst so the channels the user
+  // cares about come up quickly; steady-state ticks stay conservative.
+  bool _firstJoinPass = true;
+
+  void _joinPass() {
+    if (receiver.state is! ConnectionConnected) return;
+    final disconnected = channels.state.where((channel) => channel.state is ChannelDisconnected).toList();
+    if (disconnected.isEmpty) return;
+    // Prioritize channels the user has explicitly requested (active chat view)
+    // or last had open, so the channel actually being looked at joins first.
+    disconnected.sort((a, b) {
+      if (a.joinPriority == b.joinPriority) return 0;
+      return a.joinPriority ? -1 : 1;
+    });
+    final batchSize = _firstJoinPass ? 12 : 4;
+    _firstJoinPass = false;
+    final channelsToJoin = disconnected.take(batchSize).toList();
+    for (final channel in channelsToJoin) {
+      channel.add(ChannelJoin(receiver, transmitter));
+    }
+    receiver.send('JOIN ${channelsToJoin.map((e) => e.name).join(',')}');
+  }
+
   // Building a ChannelMessageChat is expensive (emote parsing, regex, Hive
-  // lookups). Inserting a few hundred history messages in one synchronous
-  // loop blocks the UI isolate for seconds, so taps (e.g. the notifications
-  // bell) don't register until it finishes. Process in small batches and
-  // yield to the event loop between them to keep the UI responsive.
-  static const int _historyInsertBatchSize = 20;
+  // lookups). Deserialize history newest-first in chunks: the first (smaller)
+  // chunk is the newest messages — the ones actually visible at the bottom of
+  // the reverse chat list — so they appear almost immediately. Older chunks
+  // are added above the viewport afterwards; with reverse:true the bottom
+  // anchor doesn't move, so the chat doesn't jump. Yields between chunks keep
+  // the UI responsive.
+  static const int _historyFirstChunk = 30;
+  static const int _historyLaterChunk = 40;
 
   Future<void> insertHistoryMessages(Connection connection, List<String> messages) async {
-    // Determine the target channel up front so we can batch its emits. History
-    // payloads are single-channel, so the first PRIVMSG/USERNOTICE tells us
-    // which channel's message list to defer.
-    Channel? bulkChannel;
-    Set<String>? existingIds;
-    var processed = 0;
+    // Parse once (skip ROOMSTATE), preserving chronological (oldest->newest)
+    // order as delivered by the recent-messages endpoint.
+    final parsed = <irc.Message>[];
     for (final message in messages) {
       final ircMessage = irc.Message.fromEvent(message);
       if (ircMessage.command == 'ROOMSTATE') continue;
-      if (bulkChannel == null && (ircMessage.command == 'PRIVMSG' || ircMessage.command == 'USERNOTICE') && ircMessage.parameters.isNotEmpty) {
-        bulkChannel = channels.state.firstWhereOrNull((c) => c.name == ircMessage.parameters[0]);
-        if (bulkChannel != null) {
-          // Snapshot existing message ids so we can drop duplicates BEFORE
-          // building them. receive() constructs a ChannelMessageChat (which
-          // runs the expensive build()) before ChannelMessages.add dedupes,
-          // so on a backfill where most messages already exist we'd otherwise
-          // burn CPU building hundreds of messages just to discard them.
-          existingIds = bulkChannel.channelMessages.state.whereType<ChannelMessageId>().map((e) => e.id).toSet();
-          bulkChannel.channelMessages.beginBulk();
-        }
-      }
-      // Cheaply skip already-present messages via their IRC id tag.
-      final id = ircMessage.tags['id'];
-      if (id != null && existingIds != null && existingIds.contains(id)) continue;
-      if (id != null) existingIds?.add(id);
-      receive(connection, ircMessage);
-      if (++processed % _historyInsertBatchSize == 0) {
-        await Future.delayed(Duration.zero);
-      }
+      parsed.add(ircMessage);
     }
-    bulkChannel?.channelMessages.endBulk();
+    if (parsed.isEmpty) return;
+
+    // History payloads are single-channel; find it from any chat message.
+    final firstChatMessage = parsed.firstWhereOrNull((m) => (m.command == 'PRIVMSG' || m.command == 'USERNOTICE') && m.parameters.isNotEmpty);
+    final bulkChannel = firstChatMessage == null ? null : channels.state.firstWhereOrNull((c) => c.name == firstChatMessage.parameters[0]);
+
+    // Snapshot existing ids so we drop duplicates BEFORE building them (the
+    // post-JOIN backfill mostly re-sends messages we already have).
+    final existingIds = bulkChannel?.channelMessages.state.whereType<ChannelMessageId>().map((e) => e.id).toSet() ?? <String>{};
+
+    // Walk from the end (newest) towards the start (oldest), one chunk per
+    // iteration, emitting after each so the newest render first.
+    var end = parsed.length;
+    var first = true;
+    while (end > 0) {
+      final size = first ? _historyFirstChunk : _historyLaterChunk;
+      first = false;
+      final start = (end - size).clamp(0, end);
+      final chunk = parsed.sublist(start, end);
+      end = start;
+
+      bulkChannel?.channelMessages.beginBulk();
+      for (final ircMessage in chunk) {
+        final id = ircMessage.tags['id'];
+        if (id != null && existingIds.contains(id)) continue;
+        if (id != null) existingIds.add(id);
+        receive(connection, ircMessage);
+      }
+      bulkChannel?.channelMessages.endBulk();
+      await Future.delayed(Duration.zero);
+    }
   }
 
   /// Lazily fetch recent-messages for [channel] (e.g. when its chat view is
@@ -272,6 +294,8 @@ class Client {
     for (final channel in channels.state) {
       channel.add(ChannelPart());
     }
+    // On (re)connect, allow another larger join burst.
+    _firstJoinPass = true;
   }
 
   Future<void> receive(Connection connection, irc.Message event) async {
@@ -279,10 +303,17 @@ class Client {
       case '001':
         if (connection.state is ConnectionConnecting) {
           final stateTwitchAccount = (connection.state as ConnectionConnecting).twitchAccount;
-          connection.emit(ConnectionConnected(
-            stateTwitchAccount,
-            blockedUserIds: stateTwitchAccount.tokenData.accessToken == null ? [] : await Twitch.blockedUsers(stateTwitchAccount.tokenData),
-          ));
+          // Emit connected immediately so channel joins can start, then fetch
+          // the (paginated, slow) blocked-user list in the background and fill
+          // it into the live state's mutable list.
+          final connectedState = ConnectionConnected(stateTwitchAccount);
+          connection.emit(connectedState);
+          _joinPass();
+          if (stateTwitchAccount.tokenData.accessToken != null) {
+            Twitch.blockedUsers(stateTwitchAccount.tokenData).then((ids) {
+              connectedState.blockedUserIds.addAll(ids);
+            }).catchError((_) {});
+          }
         }
         break;
       case 'GLOBALUSERSTATE':
@@ -360,13 +391,18 @@ class Client {
         }
 
         channel.id = event.tags['room-id'];
-        await channel.refresh();
 
+        // Paint cached history first using the emotes already hydrated from
+        // disk at channel construction, so it shows immediately instead of
+        // waiting on the network emote/badge refresh. refresh() then rebuilds
+        // only if the network actually changes the emote/badge set.
         final cachedHistory = channel.pendingHistoryCached;
         if (cachedHistory.isNotEmpty) {
           channel.pendingHistoryCached = const [];
-          insertHistoryMessages(connection, cachedHistory);
+          await insertHistoryMessages(connection, cachedHistory);
         }
+
+        await channel.refresh();
         break;
       case 'CLEARCHAT':
         final channelName = event.parameters[0];
