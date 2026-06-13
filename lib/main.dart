@@ -56,17 +56,28 @@ Future<void> main() async {
   Hive.registerAdapter(UserTriggerAdapter());
   Hive.registerAdapter(ChatSettingsAdapter());
 
-  final twitchAccountsBox = await Hive.openBox('TwitchAccounts');
-  final accountSettingsBox = await Hive.openBox('AccountSettings');
-  final settingsBox = await Hive.openBox('Settings');
-  final channelsBox = await Hive.openBox('Channels');
-  final emoteBadgeCacheBox = await Hive.openBox('EmoteBadgeCache');
-  await Hive.openBox('SeenMentions');
-
-  final messageTriggersBox = await Hive.openBox('MessageTriggers');
-  final userTriggersBox = await Hive.openBox('UserTriggers');
-  final customCommandsBox = await Hive.openBox('CustomCommands');
-  await Hive.openBox('ChatSettings');
+  // Open all Hive boxes concurrently instead of serially to shave startup
+  // time off the path before the first frame.
+  final boxes = await Future.wait([
+    Hive.openBox('TwitchAccounts'),
+    Hive.openBox('AccountSettings'),
+    Hive.openBox('Settings'),
+    Hive.openBox('Channels'),
+    Hive.openBox('EmoteBadgeCache'),
+    Hive.openBox('SeenMentions'),
+    Hive.openBox('MessageTriggers'),
+    Hive.openBox('UserTriggers'),
+    Hive.openBox('CustomCommands'),
+    Hive.openBox('ChatSettings'),
+  ]);
+  final twitchAccountsBox = boxes[0];
+  final accountSettingsBox = boxes[1];
+  final settingsBox = boxes[2];
+  final channelsBox = boxes[3];
+  final emoteBadgeCacheBox = boxes[4];
+  final messageTriggersBox = boxes[6];
+  final userTriggersBox = boxes[7];
+  final customCommandsBox = boxes[8];
 
   await importLegacySettings(
     twitchAccountsBox,
