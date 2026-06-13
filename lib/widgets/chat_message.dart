@@ -87,6 +87,15 @@ class _BlockedChatMessageState extends State<BlockedChatMessage> {
 
 // ignore: must_be_immutable
 class ChatMessage extends StatelessWidget {
+  // Twitch's classic text emoticons (the smiley set) are tiny glyph images
+  // and look oversized when rendered at the same height as named emotes like
+  // Kappa/PogChamp, so they get a smaller, near-text height.
+  static const Set<String> _twitchClassicEmoticons = {
+    ':)', ':(', ':D', '>(', ':|', 'O_o', 'B)', ':O', '<3', ':/', ';)', ':P', ';P', 'R)',
+    ':-)', ':-(', ':-D', '>:(', ':-|', 'O_O', 'B-)', ':-O', ':-/', ';-)', ':-P', ';-P', 'R-)',
+    ':7', ':>', ':S', '#/', '<]', ':z',
+  };
+
   final ChannelMessage message;
   late MessageAppearance messageAppearance;
   final bool renderMentions;
@@ -250,13 +259,8 @@ class ChatMessage extends StatelessWidget {
                               height: 20.0 * messageAppearance.scale,
                             )
                           : Image(
-                              image: ResizeImage(
-                                CachedNetworkImageProvider(badge.mipmap.last),
-                                height: 64,
-                                policy: ResizeImagePolicy.fit,
-                              ),
+                              image: CachedNetworkImageProvider(badge.mipmap.last),
                               height: 20.0 * messageAppearance.scale,
-                              filterQuality: FilterQuality.medium,
                             ),
                     ),
                   ),
@@ -296,17 +300,9 @@ class ChatMessage extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.only(right: 4.0) * messageAppearance.scale,
                           child: Image(
-                            // Decode emotes to roughly their on-screen size
-                            // (~3x logical px for retina) instead of the full
-                            // source bitmap, which keeps scrolling smooth when
-                            // many emotes enter the viewport at once.
-                            image: ResizeImage(
-                              CachedNetworkImageProvider(split.mipmap.last),
-                              height: 96,
-                              policy: ResizeImagePolicy.fit,
-                            ),
-                            height: (split.provider.name == 'Emoji' ? 24.0 : 32.0) * (1.0 / messageAppearance.scale),
-                            filterQuality: FilterQuality.medium,
+                            image: CachedNetworkImageProvider(split.mipmap.last),
+                            height: (split.provider.name == 'Emoji' || (split.provider.name == 'Twitch' && _twitchClassicEmoticons.contains(split.name)) ? 24.0 : 32.0) * (1.0 / messageAppearance.scale),
+                            filterQuality: FilterQuality.high,
                           ),
                         ),
                       ),
