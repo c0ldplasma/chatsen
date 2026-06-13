@@ -38,10 +38,53 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   ChannelInfo channelInfo = ChannelInfo();
   ChannelChatters channelChatters = ChannelChatters();
 
+  // O(1) lookup maps for message building, rebuilt lazily and invalidated when
+  // the underlying emote/badge sets change. Avoids concatenating the channel +
+  // global lists and linear-scanning them for every word of every message.
+  Map<String, Emote>? _emoteLookup;
+  Map<String, CustomBadge>? _badgeLookup;
+  StreamSubscription? _channelEmotesSub;
+  StreamSubscription? _channelBadgesSub;
+  StreamSubscription? _globalEmotesSub;
+  StreamSubscription? _globalBadgesSub;
+
+  // Global emotes/badges take lower precedence than channel ones (a channel
+  // emote with the same code wins), matching the previous channel-first
+  // concatenation + firstWhere behavior.
+  Map<String, Emote> get emoteLookup {
+    final cached = _emoteLookup;
+    if (cached != null) return cached;
+    final map = <String, Emote>{};
+    for (final e in client.globalEmotes.state) {
+      map[e.code ?? e.name] = e;
+    }
+    for (final e in channelEmotes.state) {
+      map[e.code ?? e.name] = e;
+    }
+    return _emoteLookup = map;
+  }
+
+  Map<String, CustomBadge> get badgeLookup {
+    final cached = _badgeLookup;
+    if (cached != null) return cached;
+    final map = <String, CustomBadge>{};
+    for (final b in client.globalBadges.state) {
+      map[b.id] = b;
+    }
+    for (final b in channelBadges.state) {
+      map[b.id] = b;
+    }
+    return _badgeLookup = map;
+  }
+
   Channel({
     required this.client,
     required this.name,
   }) : super(ChannelDisconnected()) {
+    _channelEmotesSub = channelEmotes.stream.listen((_) => _emoteLookup = null);
+    _channelBadgesSub = channelBadges.stream.listen((_) => _badgeLookup = null);
+    _globalEmotesSub = client.globalEmotes.stream.listen((_) => _emoteLookup = null);
+    _globalBadgesSub = client.globalBadges.stream.listen((_) => _badgeLookup = null);
     // Hydrate channel emotes/badges from disk immediately on construction —
     // keyed by channel login, which (unlike the room id) is known before
     // ROOMSTATE arrives. This ensures history messages built early (e.g. via
@@ -102,6 +145,15 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
       final realState = state as ChannelStateWithConnection;
       emit(ChannelSuspended(receiver: realState.receiver, transmitter: realState.transmitter));
     });
+  }
+
+  @override
+  Future<void> close() {
+    _channelEmotesSub?.cancel();
+    _channelBadgesSub?.cancel();
+    _globalEmotesSub?.cancel();
+    _globalBadgesSub?.cancel();
+    return super.close();
   }
 
   ChannelMessage? _currentStatusMessage;
