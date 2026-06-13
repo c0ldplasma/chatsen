@@ -11,6 +11,7 @@ import '../cache.dart';
 import '../client/client.dart';
 import '../emotes.dart';
 import '/tmi/channel/channel_event.dart';
+import '/tmi/channel/channel_message.dart';
 import '/tmi/channel/channel_messages.dart';
 import '/tmi/channel/channel_state.dart';
 import '/tmi/channel/messages/channel_message_event.dart';
@@ -29,6 +30,9 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   ChannelMessages channelMessages = ChannelMessages();
   List<String> pendingHistoryCached = const [];
   bool recentMessagesFetched = false;
+  bool recentMessagesEverFetched = false;
+  bool joinPriority = false;
+  bool joinBackfillDone = false;
   Emotes channelEmotes = Emotes();
   Badges channelBadges = Badges();
   ChannelInfo channelInfo = ChannelInfo();
@@ -38,11 +42,24 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     required this.client,
     required this.name,
   }) : super(ChannelDisconnected()) {
+    // Hydrate channel emotes/badges from disk immediately on construction —
+    // keyed by channel login, which (unlike the room id) is known before
+    // ROOMSTATE arrives. This ensures history messages built early (e.g. via
+    // the chat view's eager recent-messages fetch) already resolve third
+    // party emotes instead of rendering them as plain text until the network
+    // refresh lands.
+    _hydrateFromCache();
+
     on<ChannelJoin>((event, emit) async {
       emit(ChannelConnecting(receiver: event.receiver, transmitter: event.transmitter));
     });
 
     on<ChannelPart>((event, emit) async {
+      // Reset the lazy-fetch + post-join-backfill latches so the next JOIN
+      // pulls fresh recent-messages instead of trusting the snapshot we
+      // already drained before the disconnect.
+      recentMessagesFetched = false;
+      joinBackfillDone = false;
       emit(ChannelDisconnected());
     });
 
@@ -87,9 +104,20 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     });
   }
 
+  ChannelMessage? _currentStatusMessage;
+
+  void _replaceStatusMessage(ChannelMessage message) {
+    final previous = _currentStatusMessage;
+    _currentStatusMessage = message;
+    channelMessages.replace(previous, message);
+  }
+
   @override
   void onEvent(ChannelEvent event) {
-    channelMessages.add(ChannelMessageEvent(channel: this, channelEvent: event, dateTime: DateTime.now()));
+    // ChannelMessageEvent renders as an empty Container in the chat view, so
+    // swapping the current status line for an event would briefly collapse
+    // the status row to zero height and cause a visible jump. Skip event
+    // entries entirely — the resulting state change below is what we show.
     super.onEvent(event);
   }
 
@@ -98,7 +126,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     suspensionTimer?.cancel();
     suspensionTimer = null;
 
-    channelMessages.add(ChannelMessageStateChange(channel: this, change: change, dateTime: DateTime.now()));
+    _replaceStatusMessage(ChannelMessageStateChange(channel: this, change: change, dateTime: DateTime.now()));
     super.onChange(change);
   }
 
@@ -128,6 +156,11 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   Future<void> refresh() async {
     _hydrateFromCache();
 
+    // Signature of the emote/badge set we rendered messages against, so we can
+    // skip the expensive full rebuild when the network refresh returns the
+    // same data we already hydrated from cache (the common case on launch).
+    final before = _emoteBadgeSignature();
+
     final emotesFuture = refreshEmotes();
     final badgesFuture = refreshBadges();
     final refreshChannelFuture = refreshChannelUser();
@@ -135,12 +168,30 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
 
     await Future.wait([emotesFuture, badgesFuture]);
 
-    for (final message in channelMessages.state.whereType<ChannelMessageChat>()) {
-      message.build();
+    if (_emoteBadgeSignature() != before) {
+      await _rebuildMessages();
     }
-    channelMessages.emit([...channelMessages.state]);
 
     await Future.wait([refreshChannelFuture, refreshChattersFuture]);
+  }
+
+  String _emoteBadgeSignature() {
+    final emotes = channelEmotes.state.map((e) => e.id).join(',');
+    final badges = channelBadges.state.map((b) => b.id).join(',');
+    return '${channelEmotes.state.length}:$emotes|${channelBadges.state.length}:$badges';
+  }
+
+  // Rebuild already-rendered chat messages in small batches, yielding to the
+  // event loop between them so a large backlog doesn't block scrolling for a
+  // second or two while emote/badge data is reapplied.
+  Future<void> _rebuildMessages() async {
+    final messages = channelMessages.state.whereType<ChannelMessageChat>().toList();
+    var processed = 0;
+    for (final message in messages) {
+      message.build();
+      if (++processed % 20 == 0) await Future.delayed(Duration.zero);
+    }
+    channelMessages.emit([...channelMessages.state]);
   }
 
   Future<void> refreshEmotes() async {
@@ -161,7 +212,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     final merged = [for (final list in results) ...list];
     channelEmotes.emit(merged);
     final cache = client.cache;
-    if (cache != null) cache.saveEmotes(cache.channelEmotesKey(id!), merged);
+    if (cache != null) cache.saveEmotes(cache.channelEmotesKey(_cacheKey), merged);
   }
 
   Future<void> refreshBadges() async {
@@ -182,19 +233,20 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     final merged = [for (final list in results) ...list];
     channelBadges.emit(merged);
     final cache = client.cache;
-    if (cache != null) cache.saveBadges(cache.channelBadgesKey(id!), merged);
+    if (cache != null) cache.saveBadges(cache.channelBadgesKey(_cacheKey), merged);
   }
+
+  String get _cacheKey => name.replaceFirst('#', '').toLowerCase();
 
   void _hydrateFromCache() {
     final cache = client.cache;
-    final channelId = id;
-    if (cache == null || channelId == null) return;
+    if (cache == null) return;
     if (channelEmotes.state.isEmpty) {
-      final cached = cache.loadEmotes(cache.channelEmotesKey(channelId));
+      final cached = cache.loadEmotes(cache.channelEmotesKey(_cacheKey));
       if (cached.isNotEmpty) channelEmotes.emit(cached);
     }
     if (channelBadges.state.isEmpty) {
-      final cached = cache.loadBadges(cache.channelBadgesKey(channelId));
+      final cached = cache.loadBadges(cache.channelBadgesKey(_cacheKey));
       if (cached.isNotEmpty) channelBadges.emit(cached);
     }
   }

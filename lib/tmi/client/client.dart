@@ -37,6 +37,7 @@ import '/providers/provider.dart';
 import '/providers/frankerfacez.dart';
 import '/providers/seventv.dart';
 import '/tmi/channel/messages/channel_message_chat.dart';
+import '/tmi/channel/messages/channel_message_id.dart';
 import 'client_channels.dart';
 
 class Client {
@@ -87,8 +88,17 @@ class Client {
       const Duration(seconds: 2),
       (timer) {
         if (receiver.state is ConnectionConnected) {
-          final channelsToJoin = channels.state.where((channel) => channel.state is ChannelDisconnected).take(joinBatchSize).toList();
-          if (channelsToJoin.isEmpty) return;
+          final disconnected = channels.state.where((channel) => channel.state is ChannelDisconnected).toList();
+          if (disconnected.isEmpty) return;
+          // Prioritize channels the user has explicitly requested (e.g. via
+          // ensureRecentMessages when opening a chat view) so the active
+          // channel is JOINed first and live messages don't get dropped
+          // while we wait for the rest of the queue.
+          disconnected.sort((a, b) {
+            if (a.joinPriority == b.joinPriority) return 0;
+            return a.joinPriority ? -1 : 1;
+          });
+          final channelsToJoin = disconnected.take(joinBatchSize).toList();
           for (final channel in channelsToJoin) {
             channel.add(ChannelJoin(receiver, transmitter));
           }
@@ -170,27 +180,80 @@ class Client {
     cache?.saveUserBadges(EmoteBadgeCache.globalUserBadgesKey, merged);
   }
 
-  void insertHistoryMessages(Connection connection, List<String> messages) {
+  // Building a ChannelMessageChat is expensive (emote parsing, regex, Hive
+  // lookups). Inserting a few hundred history messages in one synchronous
+  // loop blocks the UI isolate for seconds, so taps (e.g. the notifications
+  // bell) don't register until it finishes. Process in small batches and
+  // yield to the event loop between them to keep the UI responsive.
+  static const int _historyInsertBatchSize = 20;
+
+  Future<void> insertHistoryMessages(Connection connection, List<String> messages) async {
+    // Determine the target channel up front so we can batch its emits. History
+    // payloads are single-channel, so the first PRIVMSG/USERNOTICE tells us
+    // which channel's message list to defer.
+    Channel? bulkChannel;
+    Set<String>? existingIds;
+    var processed = 0;
     for (final message in messages) {
       final ircMessage = irc.Message.fromEvent(message);
       if (ircMessage.command == 'ROOMSTATE') continue;
+      if (bulkChannel == null && (ircMessage.command == 'PRIVMSG' || ircMessage.command == 'USERNOTICE') && ircMessage.parameters.isNotEmpty) {
+        bulkChannel = channels.state.firstWhereOrNull((c) => c.name == ircMessage.parameters[0]);
+        if (bulkChannel != null) {
+          // Snapshot existing message ids so we can drop duplicates BEFORE
+          // building them. receive() constructs a ChannelMessageChat (which
+          // runs the expensive build()) before ChannelMessages.add dedupes,
+          // so on a backfill where most messages already exist we'd otherwise
+          // burn CPU building hundreds of messages just to discard them.
+          existingIds = bulkChannel.channelMessages.state.whereType<ChannelMessageId>().map((e) => e.id).toSet();
+          bulkChannel.channelMessages.beginBulk();
+        }
+      }
+      // Cheaply skip already-present messages via their IRC id tag.
+      final id = ircMessage.tags['id'];
+      if (id != null && existingIds != null && existingIds.contains(id)) continue;
+      if (id != null) existingIds?.add(id);
       receive(connection, ircMessage);
+      if (++processed % _historyInsertBatchSize == 0) {
+        await Future.delayed(Duration.zero);
+      }
     }
+    bulkChannel?.channelMessages.endBulk();
   }
 
   /// Lazily fetch recent-messages for [channel] (e.g. when its chat view is
   /// first opened). De-duplication in ChannelMessages.add drops anything
   /// already inserted from the cache.
   Future<void> ensureRecentMessages(Channel channel) async {
+    // User is actively looking at this channel — make sure the throttled
+    // JOIN scheduler picks it before any other queued channel.
+    channel.joinPriority = true;
     if (channel.recentMessagesFetched) return;
     channel.recentMessagesFetched = true;
+    channel.recentMessagesEverFetched = true;
     final channelLogin = channel.name.substring(1);
     try {
       final list = await RecentMessages.channel(channelLogin);
       cache?.saveHistory(channelLogin, list);
-      insertHistoryMessages(receiver, list);
+      await insertHistoryMessages(receiver, list);
     } catch (_) {
       channel.recentMessagesFetched = false;
+    }
+  }
+
+  /// Pull recent-messages again right after a successful JOIN to backfill
+  /// anything that was sent while we were waiting for the JOIN ack — those
+  /// PRIVMSGs are not delivered to us by Twitch until we are subscribed.
+  Future<void> _backfillAfterJoin(Channel channel) async {
+    if (channel.joinBackfillDone) return;
+    channel.joinBackfillDone = true;
+    final channelLogin = channel.name.substring(1);
+    try {
+      final list = await RecentMessages.channel(channelLogin);
+      cache?.saveHistory(channelLogin, list);
+      await insertHistoryMessages(receiver, list);
+    } catch (_) {
+      channel.joinBackfillDone = false;
     }
   }
 
@@ -253,6 +316,13 @@ class Client {
           channel.add(ChannelConnect());
           final channelLogin = channel.name.substring(1);
           channel.pendingHistoryCached = cache?.loadHistory(channelLogin) ?? const <String>[];
+          // If the user opened this channel before we managed to JOIN, pull
+          // recent-messages again now that we are actually subscribed — that
+          // closes the gap between our pre-JOIN snapshot and live PRIVMSGs.
+          if (channel.recentMessagesEverFetched) {
+            channel.recentMessagesFetched = true;
+            _backfillAfterJoin(channel);
+          }
         }
         break;
       case 'USERNOTICE':
