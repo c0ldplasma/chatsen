@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:chatsen/api/twitch/twitch_badge.dart';
 import 'package:chatsen/api/twitch/twitch_emote.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '/data/twitch/search_data.dart';
@@ -8,6 +9,16 @@ import '/data/twitch/stream_data.dart';
 import '/data/twitch/token_data.dart';
 import '/data/twitch/user_data.dart';
 import 'twitch_ban_response_data.dart';
+
+Map<String, Map<String, TwitchBadge>> _parseBadgeSets(List<int> bodyBytes) {
+  final responseJson = json.decode(utf8.decode(bodyBytes));
+  return {
+    for (final badgeData in responseJson['badge_sets'].entries)
+      badgeData.key: {
+        for (final badgeVersion in badgeData.value['versions'].entries) badgeVersion.key: TwitchBadge.fromJson(badgeVersion.value),
+      },
+  };
+}
 
 class Twitch {
   static Future<List<String>> blockedUsers(TokenData tokenData) async {
@@ -77,30 +88,12 @@ class Twitch {
 
   static Future<Map<String, Map<String, TwitchBadge>>> globalBadges() async {
     final response = await http.get(Uri.parse('https://badges.twitch.tv/v1/badges/global/display'));
-    final responseJson = json.decode(utf8.decode(response.bodyBytes));
-    return {
-      for (final badgeData in responseJson['badge_sets'].entries)
-        badgeData.key: {
-          for (final badgeVersion in badgeData.value['versions'].entries)
-            badgeVersion.key: TwitchBadge.fromJson(
-              badgeVersion.value,
-            ),
-        },
-    };
+    return compute(_parseBadgeSets, response.bodyBytes);
   }
 
   static Future<Map<String, Map<String, TwitchBadge>>> channelBadges(String uid) async {
     final response = await http.get(Uri.parse('https://badges.twitch.tv/v1/badges/channels/$uid/display')); // ?language=en
-    final responseJson = json.decode(utf8.decode(response.bodyBytes));
-    return {
-      for (final badgeData in responseJson['badge_sets'].entries)
-        badgeData.key: {
-          for (final badgeVersion in badgeData.value['versions'].entries)
-            badgeVersion.key: TwitchBadge.fromJson(
-              badgeVersion.value,
-            ),
-        },
-    };
+    return compute(_parseBadgeSets, response.bodyBytes);
   }
 
   static Future<List<StreamData>> streams(
