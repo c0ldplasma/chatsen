@@ -226,13 +226,22 @@ class ChannelViewState extends State<ChannelView> {
           ),
           // child: Container(),
         ),
-        Surface(
-          type: SurfaceType.surfaceVariant,
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+        Builder(builder: (context) {
+          final cs = Theme.of(context).colorScheme;
+          final isLight = Theme.of(context).brightness == Brightness.light;
+          final bg = isLight ? cs.inverseSurface : cs.surfaceContainerLowest;
+          final fg = isLight ? cs.onInverseSurface : cs.onSurface;
+          return Material(
+            color: bg,
+            child: IconTheme(
+              data: IconThemeData(color: fg),
+              child: DefaultTextStyle.merge(
+                style: TextStyle(color: fg),
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                 if (replyChannelMessageChat != null)
                   Surface(
                     type: SurfaceType.error,
@@ -370,7 +379,6 @@ class ChannelViewState extends State<ChannelView> {
                           height: 48.0,
                           child: Icon(
                             Icons.photo_size_select_actual_outlined,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -404,7 +412,6 @@ class ChannelViewState extends State<ChannelView> {
                           height: 48.0,
                           child: Icon(
                             Icons.emoji_emotions_outlined,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -421,7 +428,6 @@ class ChannelViewState extends State<ChannelView> {
                           height: 48.0,
                           child: Icon(
                             spamming ? Icons.send_and_archive_outlined : Icons.send_outlined,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -451,10 +457,13 @@ class ChannelViewState extends State<ChannelView> {
                       },
                     ),
                   ),
-              ],
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+        );
+        }),
       ],
     );
   }
