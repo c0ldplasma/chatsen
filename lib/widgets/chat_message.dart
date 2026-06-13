@@ -57,7 +57,7 @@ class _BlockedChatMessageState extends State<BlockedChatMessage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0 * (widget.messageAppearance.compact ? 1.0 : 2.0)),
+              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0 * (widget.messageAppearance.compact ? 1.0 : 2.0)),
               child: Text.rich(
                 TextSpan(
                   children: [
@@ -106,7 +106,7 @@ class ChatMessage extends StatelessWidget {
             final chatMessage = message as ChannelMessageChat;
             if (chatMessage.subInfo != null) {
               return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0 * (messageAppearance.compact ? 1.0 : 2.0)),
+                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0 * (messageAppearance.compact ? 1.0 : 2.0)),
                 child: Wrap(
                   alignment: WrapAlignment.start,
                   children: [
@@ -161,7 +161,7 @@ class ChatMessage extends StatelessWidget {
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0 * (messageAppearance.compact ? 1.0 : 2.0)),
+                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0 * (messageAppearance.compact ? 1.0 : 2.0)),
                 child: buildMessageContent(context, chatMessage, messageAppearance),
               ),
             );
@@ -250,9 +250,13 @@ class ChatMessage extends StatelessWidget {
                               height: 20.0 * messageAppearance.scale,
                             )
                           : Image(
-                              image: CachedNetworkImageProvider(badge.mipmap.last),
+                              image: ResizeImage(
+                                CachedNetworkImageProvider(badge.mipmap.last),
+                                height: 64,
+                                policy: ResizeImagePolicy.fit,
+                              ),
                               height: 20.0 * messageAppearance.scale,
-                              // scale: (1.0 / messageAppearance.scale) * 4.0,
+                              filterQuality: FilterQuality.medium,
                             ),
                     ),
                   ),
@@ -292,9 +296,17 @@ class ChatMessage extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.only(right: 4.0) * messageAppearance.scale,
                           child: Image(
-                            image: CachedNetworkImageProvider(split.mipmap.last),
+                            // Decode emotes to roughly their on-screen size
+                            // (~3x logical px for retina) instead of the full
+                            // source bitmap, which keeps scrolling smooth when
+                            // many emotes enter the viewport at once.
+                            image: ResizeImage(
+                              CachedNetworkImageProvider(split.mipmap.last),
+                              height: 96,
+                              policy: ResizeImagePolicy.fit,
+                            ),
                             height: (split.provider.name == 'Emoji' ? 24.0 : 32.0) * (1.0 / messageAppearance.scale),
-                            filterQuality: FilterQuality.high,
+                            filterQuality: FilterQuality.medium,
                           ),
                         ),
                       ),
