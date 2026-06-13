@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:chatsen/tmi/channel/messages/channel_message_chat.dart';
@@ -36,14 +37,37 @@ class _ChatViewState extends State<ChatView> {
   ScrollController scrollController = ScrollController();
   List<ChannelMessage>? scrollMessages;
 
+  // Keep the top chrome (search bar, notifications bell, scroll-to-bottom
+  // button) visible for a while after the user stops interacting instead of
+  // hiding it the instant they reach the bottom.
+  bool _chromeVisible = false;
+  Timer? _hideChromeTimer;
+  static const Duration _chromeLinger = Duration(seconds: 3);
+  static const Duration _chromeStartupLinger = Duration(seconds: 6);
+
+  void _showChrome({Duration linger = _chromeLinger}) {
+    _hideChromeTimer?.cancel();
+    if (!_chromeVisible) {
+      _chromeVisible = true;
+      if (mounted) setState(() {});
+    }
+    _hideChromeTimer = Timer(linger, () {
+      if (!mounted) return;
+      setState(() => _chromeVisible = false);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     widget.channel.client.ensureRecentMessages(widget.channel);
+    // Show the chrome a bit longer right after the view appears.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showChrome(linger: _chromeStartupLinger));
   }
 
   @override
   void dispose() {
+    _hideChromeTimer?.cancel();
     searchController.dispose();
     scrollController.dispose();
     super.dispose();
@@ -65,6 +89,9 @@ class _ChatViewState extends State<ChatView> {
                 Positioned.fill(
                   child: NotificationListener<ScrollNotification>(
                     onNotification: (scrollNotification) {
+                      if (scrollNotification is ScrollUpdateNotification || scrollNotification is ScrollStartNotification) {
+                        _showChrome();
+                      }
                       if (scrollNotification is ScrollUpdateNotification && scrollMessages == null && scrollController.position.pixels > scrollController.position.minScrollExtent) {
                         scrollMessages = state;
                         setState(() {});
@@ -134,7 +161,9 @@ class _ChatViewState extends State<ChatView> {
                       Expanded(
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
-                          opacity: scrollMessages != null ? 1.0 : 0.0,
+                          opacity: (scrollMessages != null || _chromeVisible) ? 1.0 : 0.0,
+                          child: IgnorePointer(
+                            ignoring: !(scrollMessages != null || _chromeVisible),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                             child: Surface(
@@ -155,12 +184,13 @@ class _ChatViewState extends State<ChatView> {
                               ),
                             ),
                           ),
+                          ),
                         ),
                       ),
                       if (widget.filter == null)
                         AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
-                          opacity: (scrollMessages != null || BlocProvider.of<NotificationsCubit>(context).state.unread > 0) ? 1.0 : 0.0,
+                          opacity: (scrollMessages != null || _chromeVisible || BlocProvider.of<NotificationsCubit>(context).state.unread > 0) ? 1.0 : 0.0,
                           child: const Padding(
                             padding: EdgeInsets.only(top: 8.0, right: 8.0, bottom: 8.0),
                             child: AvatarButton(),
@@ -177,6 +207,8 @@ class _ChatViewState extends State<ChatView> {
                     child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 200),
                       opacity: scrollMessages != null ? 1.0 : 0.0,
+                      child: IgnorePointer(
+                        ignoring: scrollMessages == null,
                       child: Surface(
                         onTap: () {
                           scrollMessages = null;
@@ -195,6 +227,7 @@ class _ChatViewState extends State<ChatView> {
                             child: const Icon(Icons.chevron_right_outlined),
                           ),
                         ),
+                      ),
                       ),
                     ),
                   ),
