@@ -1,5 +1,5 @@
 {
-  "chatsen": "Chatsen",
+  "chatsen": "ColdChat",
   "catsen": "Catsen",
   "loggedInVia": "S'ha iniciat la sessió mitjançant {provider}",
   "@loggedInVia": {
@@ -144,7 +144,7 @@
   "noNotifications": "Algú, en algun lloc, t'esmentarà algun dia.",
   "backgroundNotifications": "Background notifications",
   "optionNotAvailableOnYourPlatform": "This option is not available on your platform.",
-  "optionNotAvailablePaywalled": "This option is for Chatsen supporters only.",
+  "optionNotAvailablePaywalled": "This option is for ColdChat supporters only.",
   "clearAll": "Clear all",
   "cache": "Cache",
   "clearCache": "Clear cache",
