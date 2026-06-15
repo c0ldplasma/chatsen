@@ -1,7 +1,7 @@
 name: chatsen
 description: 3rd party client for Twitch
 publish_to: 'none'
-version: 2.0.0+100
+version: 2.0.0+101
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -59,14 +59,14 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icon.jpg"
+  image_path: "assets/icon.png"
   remove_alpha_ios: true
   web:
     generate: true
-    image_path: "assets/icon.jpg"
+    image_path: "assets/icon.png"
   macos:
     generate: true
-    image_path: "assets/icon.jpg"
+    image_path: "assets/icon.png"
 
 flutter:
   generate: true

@@ -5,6 +5,10 @@
 # Fonts
 !/fonts/**/*.ttf
 
+# App assets (e.g. launcher icon source)
+!/assets/**/*.png
+!/assets/**/*.jpg
+
 # Source files
 !/lib/**/*.dart
 /lib/generated_plugin_registrant.dart
