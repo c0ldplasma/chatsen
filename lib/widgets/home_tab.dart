@@ -189,7 +189,7 @@ class _HomeTabState extends State<HomeTab> {
                       Platform.isWindows ? Colors.transparent : null,
                   // foregroundColor: Colors.transparent,
                   shadowColor: Platform.isWindows ? Colors.transparent : null,
-                  title: const Text('Chatsen'),
+                  title: const Text('ColdChat'),
                   actions: const [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.0),

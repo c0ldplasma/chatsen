@@ -9,7 +9,7 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get chatsen => 'Chatsen';
+  String get chatsen => 'ColdChat';
 
   @override
   String get catsen => 'Catsen';
@@ -324,7 +324,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get optionNotAvailablePaywalled =>
-      'Cette option est réservée aux supporters de Chatsen.';
+      'Cette option est réservée aux supporters de ColdChat.';
 
   @override
   String get clearAll => 'Tout effacer';
