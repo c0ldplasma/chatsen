@@ -7,14 +7,12 @@ import 'package:chatsen/tmi/channel/channel_chatters.dart';
 import '/api/chatsen/chatsen.dart';
 import '/data/custom_badge.dart';
 import '/data/emote.dart';
-import '../cache.dart';
 import '../client/client.dart';
 import '../emotes.dart';
 import '/tmi/channel/channel_event.dart';
 import '/tmi/channel/channel_message.dart';
 import '/tmi/channel/channel_messages.dart';
 import '/tmi/channel/channel_state.dart';
-import '/tmi/channel/messages/channel_message_event.dart';
 import '/tmi/channel/messages/channel_message_state_change.dart';
 import '/providers/badge_provider.dart';
 import '/providers/emote_provider.dart';
@@ -43,10 +41,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   // global lists and linear-scanning them for every word of every message.
   Map<String, Emote>? _emoteLookup;
   Map<String, CustomBadge>? _badgeLookup;
-  StreamSubscription? _channelEmotesSub;
-  StreamSubscription? _channelBadgesSub;
-  StreamSubscription? _globalEmotesSub;
-  StreamSubscription? _globalBadgesSub;
+  final List<StreamSubscription> _lookupSubs = [];
 
   // Global emotes/badges take lower precedence than channel ones (a channel
   // emote with the same code wins), matching the previous channel-first
@@ -81,10 +76,12 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     required this.client,
     required this.name,
   }) : super(ChannelDisconnected()) {
-    _channelEmotesSub = channelEmotes.stream.listen((_) => _emoteLookup = null);
-    _channelBadgesSub = channelBadges.stream.listen((_) => _badgeLookup = null);
-    _globalEmotesSub = client.globalEmotes.stream.listen((_) => _emoteLookup = null);
-    _globalBadgesSub = client.globalBadges.stream.listen((_) => _badgeLookup = null);
+    _lookupSubs.addAll([
+      channelEmotes.stream.listen((_) => _emoteLookup = null),
+      client.globalEmotes.stream.listen((_) => _emoteLookup = null),
+      channelBadges.stream.listen((_) => _badgeLookup = null),
+      client.globalBadges.stream.listen((_) => _badgeLookup = null),
+    ]);
     // Hydrate channel emotes/badges from disk immediately on construction —
     // keyed by channel login, which (unlike the room id) is known before
     // ROOMSTATE arrives. This ensures history messages built early (e.g. via
@@ -149,10 +146,9 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
 
   @override
   Future<void> close() {
-    _channelEmotesSub?.cancel();
-    _channelBadgesSub?.cancel();
-    _globalEmotesSub?.cancel();
-    _globalBadgesSub?.cancel();
+    for (final sub in _lookupSubs) {
+      sub.cancel();
+    }
     return super.close();
   }
 
@@ -164,14 +160,8 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     channelMessages.replace(previous, message);
   }
 
-  @override
-  void onEvent(ChannelEvent event) {
-    // ChannelMessageEvent renders as an empty Container in the chat view, so
-    // swapping the current status line for an event would briefly collapse
-    // the status row to zero height and cause a visible jump. Skip event
-    // entries entirely — the resulting state change below is what we show.
-    super.onEvent(event);
-  }
+  // Note: channel events (join/part/etc.) are intentionally not surfaced as
+  // chat messages — only the resulting state change is shown (see onChange).
 
   @override
   void onChange(Change<ChannelState> change) {

@@ -10,6 +10,7 @@ import 'package:chatsen/l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../api/catbox/catbox.dart';
+import '../components/dark_bar.dart';
 import '../components/surface.dart';
 import '../components/tile.dart';
 import '../data/custom_command.dart';
@@ -226,22 +227,10 @@ class ChannelViewState extends State<ChannelView> {
           ),
           // child: Container(),
         ),
-        Builder(builder: (context) {
-          final cs = Theme.of(context).colorScheme;
-          final isLight = Theme.of(context).brightness == Brightness.light;
-          final bg = isLight ? cs.inverseSurface : cs.surfaceContainerLowest;
-          final fg = isLight ? cs.onInverseSurface : cs.onSurface;
-          return Material(
-            color: bg,
-            child: IconTheme(
-              data: IconThemeData(color: fg),
-              child: DefaultTextStyle.merge(
-                style: TextStyle(color: fg),
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+        DarkBar(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
                 if (replyChannelMessageChat != null)
                   Surface(
                     type: SurfaceType.error,
@@ -457,13 +446,9 @@ class ChannelViewState extends State<ChannelView> {
                       },
                     ),
                   ),
-                  ],
-                ),
-              ),
-            ),
+            ],
           ),
-        );
-        }),
+        ),
       ],
     );
   }

@@ -20,8 +20,13 @@ class EmoteBadgeCache {
   static const int maxCachedChannels = 60;
   static const String _lruKey = 'channelLru';
 
+  // Channel access order (most-recent last), held in memory so a save doesn't
+  // decode the stored list every time. Loaded once on construction.
+  late final List<String> _lru;
+
   EmoteBadgeCache({required this.box, required this.providers}) {
     _purgeLegacyKeys();
+    _lru = _decodeStringList(_lruKey) ?? [];
   }
 
   // Earlier versions keyed channel caches by room id (and an un-versioned
@@ -35,29 +40,24 @@ class EmoteBadgeCache {
     if (stale.isNotEmpty) box.deleteAll(stale);
   }
 
-  // Track channel access order (most-recent last) and evict the oldest
-  // channels' cached blobs once the cap is exceeded.
+  // Move [login] to the most-recent position and evict the oldest channels'
+  // cached blobs once the cap is exceeded. No-op put when already most-recent.
   void _touchChannel(String login) {
-    final raw = box.get(_lruKey);
-    final lru = <String>[
-      if (raw is String)
-        ...(() {
-          try {
-            final decoded = json.decode(raw);
-            if (decoded is List) return List<String>.from(decoded);
-          } catch (_) {}
-          return const <String>[];
-        })()
-    ];
-    lru.remove(login);
-    lru.add(login);
-    while (lru.length > maxCachedChannels) {
-      final evict = lru.removeAt(0);
+    if (_lru.isNotEmpty && _lru.last == login) return;
+    _lru.remove(login);
+    _lru.add(login);
+    while (_lru.length > maxCachedChannels) {
+      final evict = _lru.removeAt(0);
       box.delete(channelEmotesKey(evict));
       box.delete(channelBadgesKey(evict));
       box.delete(_historyKey(evict));
     }
-    box.put(_lruKey, json.encode(lru));
+    box.put(_lruKey, json.encode(_lru));
+  }
+
+  List<String>? _decodeStringList(String key) {
+    final decoded = _decode(key);
+    return decoded == null ? null : List<String>.from(decoded);
   }
 
   Provider? _providerByName(String? name) {
@@ -218,15 +218,7 @@ class EmoteBadgeCache {
     return saveBadges(channelBadgesKey(channelLogin), badges);
   }
 
-  List<String> loadHistory(String channelLogin) {
-    final raw = box.get(_historyKey(channelLogin));
-    if (raw is! String) return const [];
-    try {
-      final decoded = json.decode(raw);
-      if (decoded is List) return List<String>.from(decoded);
-    } catch (_) {}
-    return const [];
-  }
+  List<String> loadHistory(String channelLogin) => _decodeStringList(_historyKey(channelLogin)) ?? const [];
 
   Future<void> saveHistory(String channelLogin, List<String> messages) {
     _touchChannel(channelLogin);
