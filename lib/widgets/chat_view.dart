@@ -81,6 +81,7 @@ class _ChatViewState extends State<ChatView> {
           bloc: widget.channel.channelMessages,
           buildWhen: (state1, state2) => scrollMessages == null,
           builder: (context, state) {
+            final chromeShown = scrollMessages != null || _chromeVisible;
             var messages = (scrollMessages ?? state).reversed;
             if (scrollMessages != null && searchController.text.isNotEmpty) messages = messages.where((element) => (element is ChannelMessageChat && '${(element.user.displayName ?? element.user.login)?.toLowerCase()}: ${element.body.toLowerCase()}'.contains(searchController.text.toLowerCase()))).toList();
             if (widget.filter != null) messages = messages.where((element) => widget.filter!(element)).toList();
@@ -161,9 +162,9 @@ class _ChatViewState extends State<ChatView> {
                       Expanded(
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
-                          opacity: (scrollMessages != null || _chromeVisible) ? 1.0 : 0.0,
+                          opacity: chromeShown ? 1.0 : 0.0,
                           child: IgnorePointer(
-                            ignoring: !(scrollMessages != null || _chromeVisible),
+                            ignoring: !chromeShown,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                             child: Surface(
@@ -190,7 +191,7 @@ class _ChatViewState extends State<ChatView> {
                       if (widget.filter == null)
                         AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
-                          opacity: (scrollMessages != null || _chromeVisible || BlocProvider.of<NotificationsCubit>(context).state.unread > 0) ? 1.0 : 0.0,
+                          opacity: (chromeShown || BlocProvider.of<NotificationsCubit>(context).state.unread > 0) ? 1.0 : 0.0,
                           child: const Padding(
                             padding: EdgeInsets.only(top: 8.0, right: 8.0, bottom: 8.0),
                             child: AvatarButton(),

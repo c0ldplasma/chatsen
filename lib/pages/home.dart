@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:chatsen/components/surface.dart';
 import 'package:chatsen/modal/channel.dart';
 import 'package:chatsen/widgets/browser/stream_container.dart';
 import 'package:chatsen/widgets/cookies_manager.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../components/dark_bar.dart';
 import '../components/modal.dart';
 import '../modal/chatsen.dart';
 import '../tmi/channel/channel.dart';
@@ -110,60 +110,47 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               appBar: Platform.isWindows ? const MyAppBar() : null,
               extendBody: true,
               extendBodyBehindAppBar: true,
-              bottomNavigationBar: Builder(builder: (context) {
-                final cs = Theme.of(context).colorScheme;
-                final isLight = Theme.of(context).brightness == Brightness.light;
-                final bg = isLight ? cs.inverseSurface : cs.surfaceContainerLowest;
-                final fg = isLight ? cs.onInverseSurface : cs.onSurface;
-                return Material(
-                  color: bg,
-                  child: SafeArea(
-                    top: false,
-                    child: IconTheme(
-                      data: IconThemeData(color: fg),
-                      child: DefaultTextStyle.merge(
-                        style: TextStyle(color: fg),
-                        child: TabBar(
-                          controller: tabController,
-                          isScrollable: true,
-                          tabAlignment: TabAlignment.start,
-                          labelColor: fg,
-                          unselectedLabelColor: fg.withOpacity(0.6),
-                          indicatorColor: fg,
-                          dividerColor: Colors.transparent,
-                          tabs: [
-                            GestureDetector(
-                              onLongPress: () {
-                                Modal.show(
-                                  context: context,
-                                  child: const ChatsenModal(),
-                                );
-                              },
-                              child: const SizedBox(
-                                height: 48.0,
-                                child: Icon(Icons.home_outlined),
-                              ),
-                            ),
-                            for (final channel in state)
-                              GestureDetector(
-                                onLongPress: () {
-                                  Modal.show(
-                                    context: context,
-                                    child: ChannelModal(channel: channel),
-                                  );
-                                },
-                                child: SizedBox(
-                                  height: 48.0,
-                                  child: Center(child: Text(channel.name)),
-                                ),
-                              ),
-                          ],
+              bottomNavigationBar: DarkBar(
+                child: Builder(builder: (context) {
+                  final fg = DarkBar.foregroundColor(context);
+                  return TabBar(
+                    controller: tabController,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    labelColor: fg,
+                    unselectedLabelColor: fg.withOpacity(0.6),
+                    indicatorColor: fg,
+                    dividerColor: Colors.transparent,
+                    tabs: [
+                      GestureDetector(
+                        onLongPress: () {
+                          Modal.show(
+                            context: context,
+                            child: const ChatsenModal(),
+                          );
+                        },
+                        child: const SizedBox(
+                          height: 48.0,
+                          child: Icon(Icons.home_outlined),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              }),
+                      for (final channel in state)
+                        GestureDetector(
+                          onLongPress: () {
+                            Modal.show(
+                              context: context,
+                              child: ChannelModal(channel: channel),
+                            );
+                          },
+                          child: SizedBox(
+                            height: 48.0,
+                            child: Center(child: Text(channel.name)),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
+              ),
               body: TabBarView(
                 controller: tabController,
                 children: [

@@ -258,12 +258,7 @@ class Client {
     if (channel.recentMessagesFetched) return;
     channel.recentMessagesFetched = true;
     channel.recentMessagesEverFetched = true;
-    final channelLogin = channel.name.substring(1);
-    try {
-      final list = await RecentMessages.channel(channelLogin);
-      cache?.saveHistory(channelLogin, list);
-      await insertHistoryMessages(receiver, list);
-    } catch (_) {
+    if (!await _fetchAndInsertHistory(channel)) {
       channel.recentMessagesFetched = false;
     }
   }
@@ -274,13 +269,22 @@ class Client {
   Future<void> _backfillAfterJoin(Channel channel) async {
     if (channel.joinBackfillDone) return;
     channel.joinBackfillDone = true;
+    if (!await _fetchAndInsertHistory(channel)) {
+      channel.joinBackfillDone = false;
+    }
+  }
+
+  // Fetch recent-messages for [channel], persist them, and insert into the
+  // chat. Returns false on failure so callers can reset their latch.
+  Future<bool> _fetchAndInsertHistory(Channel channel) async {
     final channelLogin = channel.name.substring(1);
     try {
       final list = await RecentMessages.channel(channelLogin);
       cache?.saveHistory(channelLogin, list);
       await insertHistoryMessages(receiver, list);
+      return true;
     } catch (_) {
-      channel.joinBackfillDone = false;
+      return false;
     }
   }
 
