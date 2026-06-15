@@ -145,7 +145,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatsen.
   ///
   /// In en, this message translates to:
-  /// **'Chatsen'**
+  /// **'ColdChat'**
   String get chatsen;
 
   /// No description provided for @catsen.
@@ -721,7 +721,7 @@ abstract class AppLocalizations {
   /// No description provided for @optionNotAvailablePaywalled.
   ///
   /// In en, this message translates to:
-  /// **'This option is for Chatsen supporters only.'**
+  /// **'This option is for ColdChat supporters only.'**
   String get optionNotAvailablePaywalled;
 
   /// No description provided for @clearAll.

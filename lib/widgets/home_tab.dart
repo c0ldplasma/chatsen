@@ -17,9 +17,24 @@ import '/components/surface.dart';
 import '/data/twitch/stream_data.dart';
 import '/data/twitch_account.dart';
 import '/modal/chatsen.dart';
+import '/pages/home.dart';
 import '/tmi/channel/channel_event.dart';
 import '/tmi/client/client.dart';
 import '/widgets/avatar_button.dart';
+
+/// Joins [channelName] (if not already joined) and switches to its tab via the
+/// [HomeTabSwitcher] provided by the home page.
+void joinAndOpenChannel(BuildContext context, String channelName) {
+  final client = context.read<Client>();
+  if (!client.channels.state.any((channel) => channel.name == channelName)) {
+    client.channels.join(channelName);
+    client.receiver.send('JOIN $channelName');
+    client.channels.state
+        .firstWhereOrNull((channel) => channel.name == channelName)
+        ?.add(ChannelJoin(client.receiver, client.transmitter));
+  }
+  context.read<HomeTabSwitcher>().open(channelName);
+}
 
 class HomeSearchBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeSearchBar({super.key});
@@ -33,7 +48,9 @@ class HomeSearchBar extends StatelessWidget implements PreferredSizeWidget {
 
 class SliverSearchBar extends SliverPersistentHeaderDelegate {
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => const SafeArea(child: Placeholder());
+  Widget build(
+          BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      const SafeArea(child: Placeholder());
 
   @override
   double get maxExtent => 256.0;
@@ -42,7 +59,8 @@ class SliverSearchBar extends SliverPersistentHeaderDelegate {
   double get minExtent => 256.0;
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      true;
 }
 
 class HomeTab extends StatefulWidget {
@@ -84,14 +102,26 @@ class _HomeTabState extends State<HomeTab> {
     super.dispose();
   }
 
+  // Join + switch to the channel, then reset and dismiss the search.
+  void _openSearchResult(String channelName) {
+    joinAndOpenChannel(context, channelName);
+    searchTextController.clear();
+    FocusScope.of(context).unfocus();
+    setState(() => searchResults = null);
+  }
+
   @override
   void initState() {
     final twitchAccountsBox = Hive.box('TwitchAccounts');
     final accountSettingsBox = Hive.box('AccountSettings');
-    account = twitchAccountsBox.values.firstWhereOrNull((element) => (element as TwitchAccount).tokenData.hash == accountSettingsBox.get('activeTwitchAccount')) as TwitchAccount?;
+    account = twitchAccountsBox.values.firstWhereOrNull((element) =>
+        (element as TwitchAccount).tokenData.hash ==
+        accountSettingsBox.get('activeTwitchAccount')) as TwitchAccount?;
 
     accountSettingsBox.listenable().addListener(() {
-      account = twitchAccountsBox.values.firstWhereOrNull((element) => (element as TwitchAccount).tokenData.hash == accountSettingsBox.get('activeTwitchAccount')) as TwitchAccount?;
+      account = twitchAccountsBox.values.firstWhereOrNull((element) =>
+          (element as TwitchAccount).tokenData.hash ==
+          accountSettingsBox.get('activeTwitchAccount')) as TwitchAccount?;
       setState(() {
         refresh();
       });
@@ -155,10 +185,11 @@ class _HomeTabState extends State<HomeTab> {
               slivers: [
                 SliverAppBar.large(
                   surfaceTintColor: Colors.transparent,
-                  backgroundColor: Platform.isWindows ? Colors.transparent : null,
+                  backgroundColor:
+                      Platform.isWindows ? Colors.transparent : null,
                   // foregroundColor: Colors.transparent,
                   shadowColor: Platform.isWindows ? Colors.transparent : null,
-                  title: const Text('Chatsen'),
+                  title: const Text('ColdChat'),
                   actions: const [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.0),
@@ -183,9 +214,12 @@ class _HomeTabState extends State<HomeTab> {
                                 decoration: InputDecoration(
                                   filled: false,
                                   border: InputBorder.none,
-                                  hintText: AppLocalizations.of(context)!.searchForChannels,
+                                  hintText: AppLocalizations.of(context)!
+                                      .searchForChannels,
                                   hintStyle: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                 ),
                                 controller: searchTextController,
@@ -198,7 +232,8 @@ class _HomeTabState extends State<HomeTab> {
                                   }
 
                                   setState(() {
-                                    searchResults = Twitch.channelSearch(account!.tokenData, text);
+                                    searchResults = Twitch.channelSearch(
+                                        account!.tokenData, text);
                                   });
                                 },
                               ),
@@ -215,7 +250,8 @@ class _HomeTabState extends State<HomeTab> {
                   FutureBuilder<List<SearchData>>(
                     future: searchResults,
                     builder: (context, snapshot) {
-                      if (snapshot.hasError) return SliverList.list(children: const [Text('Error')]);
+                      if (snapshot.hasError)
+                        return SliverList.list(children: const [Text('Error')]);
                       if (!snapshot.hasData) {
                         return SliverList.list(
                           children: const [
@@ -229,25 +265,16 @@ class _HomeTabState extends State<HomeTab> {
                       return SliverList.list(
                         children: [
                           Tile(
-                            onTap: () {
-                              final client = context.read<Client>();
-                              final channelName = '#${searchTextController.text}';
-                              if (!client.channels.state.any((channel) => channel.name == channelName)) {
-                                client.channels.join(channelName);
-                                client.receiver.send('JOIN $channelName');
-                                client.channels.state.firstWhereOrNull((channelSelect) => channelSelect.name == channelName)?.add(ChannelJoin(client.receiver, client.transmitter));
-                              }
-                              WidgetsBinding.instance.scheduleFrameCallback((_) {
-                                WidgetsBinding.instance.scheduleFrameCallback((_) {
-                                  DefaultTabController.of(context).animateTo(client.channels.state.indexWhere((channel) => channel.name == channelName) + 1);
-                                });
-                              });
-                            },
+                            onTap: () => _openSearchResult(
+                                '#${searchTextController.text}'),
                             prefix: ClipRRect(
                               borderRadius: BorderRadius.circular(48.0),
                               clipBehavior: Clip.antiAlias,
                               child: Material(
-                                color: Theme.of(context).colorScheme.onBackground.withOpacity(0.1),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onBackground
+                                    .withOpacity(0.1),
                                 child: const Icon(Icons.add_circle_outline),
                               ),
                             ),
@@ -256,27 +283,20 @@ class _HomeTabState extends State<HomeTab> {
                           const Separator(),
                           for (final searchResult in snapshot.data!)
                             Tile(
-                              onTap: () {
-                                final client = context.read<Client>();
-                                final channelName = '#${searchResult.broadcasterLogin}';
-                                if (!client.channels.state.any((channel) => channel.name == channelName)) {
-                                  client.channels.join(channelName);
-                                  client.receiver.send('JOIN $channelName');
-                                  client.channels.state.firstWhereOrNull((channelSelect) => channelSelect.name == channelName)?.add(ChannelJoin(client.receiver, client.transmitter));
-                                }
-                                WidgetsBinding.instance.scheduleFrameCallback((_) {
-                                  WidgetsBinding.instance.scheduleFrameCallback((_) {
-                                    DefaultTabController.of(context).animateTo(client.channels.state.indexWhere((channel) => channel.name == channelName) + 1);
-                                  });
-                                });
-                              },
+                              onTap: () => _openSearchResult(
+                                  '#${searchResult.broadcasterLogin}'),
                               prefix: ClipRRect(
                                 borderRadius: BorderRadius.circular(48.0),
                                 clipBehavior: Clip.antiAlias,
                                 child: Material(
-                                  color: Theme.of(context).colorScheme.onBackground.withOpacity(0.1),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground
+                                      .withOpacity(0.1),
                                   // child: const Icon(Icons.add_circle_outline),
-                                  child: Ink.image(image: NetworkImage(searchResult.thumbnailUrl)),
+                                  child: Ink.image(
+                                      image: NetworkImage(
+                                          searchResult.thumbnailUrl)),
                                 ),
                               ),
                               title: searchResult.displayName,
@@ -289,7 +309,9 @@ class _HomeTabState extends State<HomeTab> {
                   FutureBuilder<List<StreamData>>(
                     future: recommendedStreams,
                     builder: (context, snapshot) {
-                      if (snapshot.hasError || (snapshot.data?.isEmpty ?? false)) return SliverList.list(children: const []);
+                      if (snapshot.hasError ||
+                          (snapshot.data?.isEmpty ?? false))
+                        return SliverList.list(children: const []);
                       if (!snapshot.hasData) {
                         return SliverList.list(
                           children: const [
@@ -303,7 +325,9 @@ class _HomeTabState extends State<HomeTab> {
                       return SliverList.list(
                         children: [
                           ConstrainedBox(
-                            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.222),
+                            constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.of(context).size.height * 0.222),
                             child: CarouselSlider(
                               options: CarouselOptions(
                                 autoPlay: true,
@@ -373,7 +397,9 @@ class StreamPreviewPill extends StatelessWidget {
           children: [
             Positioned.fill(
               child: Ink.image(
-                image: NetworkImage(stream.thumbnailUrl.replaceAll('{width}', '1920').replaceAll('{height}', '1080')),
+                image: NetworkImage(stream.thumbnailUrl
+                    .replaceAll('{width}', '1920')
+                    .replaceAll('{height}', '1080')),
                 fit: BoxFit.cover,
               ),
             ),
@@ -401,7 +427,8 @@ class StreamPreviewPill extends StatelessWidget {
                 // mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(stream.userName, style: Theme.of(context).textTheme.titleLarge),
+                  Text(stream.userName,
+                      style: Theme.of(context).textTheme.titleLarge),
                   Text(
                     stream.title,
                     style: Theme.of(context).textTheme.titleMedium,
@@ -426,20 +453,7 @@ class StreamPreviewSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        final client = context.read<Client>();
-        final channelName = '#${stream.userLogin}';
-        if (!client.channels.state.any((channel) => channel.name == channelName)) {
-          client.channels.join(channelName);
-          client.receiver.send('JOIN $channelName');
-          client.channels.state.firstWhereOrNull((channelSelect) => channelSelect.name == channelName)?.add(ChannelJoin(client.receiver, client.transmitter));
-        }
-        WidgetsBinding.instance.scheduleFrameCallback((_) {
-          WidgetsBinding.instance.scheduleFrameCallback((_) {
-            DefaultTabController.of(context).animateTo(client.channels.state.indexWhere((channel) => channel.name == channelName) + 1);
-          });
-        });
-      },
+      onTap: () => joinAndOpenChannel(context, '#${stream.userLogin}'),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         child: Row(
@@ -451,7 +465,9 @@ class StreamPreviewSmall extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
                   child: Image.network(
-                    (stream.thumbnailUrl.replaceAll('{width}', '1920').replaceAll('{height}', '1080')),
+                    (stream.thumbnailUrl
+                        .replaceAll('{width}', '1920')
+                        .replaceAll('{height}', '1080')),
                   ),
                 ),
               ),
@@ -471,12 +487,20 @@ class StreamPreviewSmall extends StatelessWidget {
                   ),
                   Text(
                     stream.title.trim(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.9)),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     stream.gameName,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.9)),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Row(
@@ -493,7 +517,11 @@ class StreamPreviewSmall extends StatelessWidget {
                       const SizedBox(width: 4.0),
                       Text(
                         '${stream.viewerCount}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.9)),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onBackground
+                                .withOpacity(0.9)),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(width: 16.0),
@@ -504,8 +532,17 @@ class StreamPreviewSmall extends StatelessWidget {
                       const SizedBox(width: 4.0),
                       Expanded(
                         child: Text(
-                          '${DateTime.now().difference(stream.startedAt)}'.split('.').first,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.9)),
+                          '${DateTime.now().difference(stream.startedAt)}'
+                              .split('.')
+                              .first,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground
+                                      .withOpacity(0.9)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -535,25 +572,14 @@ class StreamPreviewLarge extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       borderRadius: BorderRadius.circular(16.0),
       child: InkWell(
-        onTap: () {
-          final client = context.read<Client>();
-          final channelName = '#${stream.userLogin}';
-          if (!client.channels.state.any((channel) => channel.name == channelName)) {
-            client.channels.join(channelName);
-            client.receiver.send('JOIN $channelName');
-            client.channels.state.firstWhereOrNull((channelSelect) => channelSelect.name == channelName)?.add(ChannelJoin(client.receiver, client.transmitter));
-          }
-          WidgetsBinding.instance.scheduleFrameCallback((_) {
-            WidgetsBinding.instance.scheduleFrameCallback((_) {
-              DefaultTabController.of(context).animateTo(client.channels.state.indexWhere((channel) => channel.name == channelName) + 1);
-            });
-          });
-        },
+        onTap: () => joinAndOpenChannel(context, '#${stream.userLogin}'),
         child: Stack(
           children: [
             Positioned.fill(
               child: Ink.image(
-                image: NetworkImage(stream.thumbnailUrl.replaceAll('{width}', '1920').replaceAll('{height}', '1080')),
+                image: NetworkImage(stream.thumbnailUrl
+                    .replaceAll('{width}', '1920')
+                    .replaceAll('{height}', '1080')),
                 fit: BoxFit.cover,
               ),
             ),
@@ -575,7 +601,8 @@ class StreamPreviewLarge extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -590,12 +617,18 @@ class StreamPreviewLarge extends StatelessWidget {
                   ),
                   Text(
                     stream.title.trim(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white.withOpacity(0.9)),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: Colors.white.withOpacity(0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     stream.gameName,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white.withOpacity(0.9)),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: Colors.white.withOpacity(0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Row(
@@ -612,7 +645,10 @@ class StreamPreviewLarge extends StatelessWidget {
                       const SizedBox(width: 4.0),
                       Text(
                         '${stream.viewerCount}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.9)),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.white.withOpacity(0.9)),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(width: 16.0),
@@ -624,8 +660,13 @@ class StreamPreviewLarge extends StatelessWidget {
                       const SizedBox(width: 4.0),
                       Expanded(
                         child: Text(
-                          '${DateTime.now().difference(stream.startedAt)}'.split('.').first,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.9)),
+                          '${DateTime.now().difference(stream.startedAt)}'
+                              .split('.')
+                              .first,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.white.withOpacity(0.9)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

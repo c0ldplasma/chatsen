@@ -9,7 +9,7 @@ class AppLocalizationsVi extends AppLocalizations {
   AppLocalizationsVi([String locale = 'vi']) : super(locale);
 
   @override
-  String get chatsen => 'Chatsen';
+  String get chatsen => 'ColdChat';
 
   @override
   String get catsen => 'Catsen';
@@ -323,7 +323,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get optionNotAvailablePaywalled =>
-      'Tùy chọn này chỉ dành cho người dùng ủng hộ Chatsen.';
+      'Tùy chọn này chỉ dành cho người dùng ủng hộ ColdChat.';
 
   @override
   String get clearAll => 'Xoá tất cả';

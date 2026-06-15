@@ -1,5 +1,5 @@
 {
-  "chatsen": "Chatsen",
+  "chatsen": "ColdChat",
   "catsen": "Catsen",
   "loggedInVia": "Вы вошли через {provider}",
   "@loggedInVia": {
@@ -144,7 +144,7 @@
   "noNotifications": "Кто-то, где-то, обязательно упомянет вас когда-нибудь.",
   "backgroundNotifications": "Фоновые уведомления",
   "optionNotAvailableOnYourPlatform": "Эта опция недоступна на вашей операционной системе.",
-  "optionNotAvailablePaywalled": "Эта опция предназначена только для спонсоров Chatsen.",
+  "optionNotAvailablePaywalled": "Эта опция предназначена только для спонсоров ColdChat.",
   "clearAll": "Очистить всё",
   "cache": "Кэш",
   "clearCache": "Очистить кэш",

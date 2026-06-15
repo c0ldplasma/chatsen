@@ -1,5 +1,5 @@
 {
-  "chatsen": "Chatsen",
+  "chatsen": "ColdChat",
   "catsen": "Catsen",
   "loggedInVia": "{provider} aracılığıyla giriş yapıldı",
   "@loggedInVia": {
@@ -144,7 +144,7 @@
   "noNotifications": "Someone, somewhere, will mention you someday.",
   "backgroundNotifications": "Background notifications",
   "optionNotAvailableOnYourPlatform": "This option is not available on your platform.",
-  "optionNotAvailablePaywalled": "This option is for Chatsen supporters only.",
+  "optionNotAvailablePaywalled": "This option is for ColdChat supporters only.",
   "clearAll": "Clear all",
   "cache": "Cache",
   "clearCache": "Clear cache",

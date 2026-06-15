@@ -1,5 +1,5 @@
 {
-  "chatsen": "チャットセン",
+  "chatsen": "ColdChat",
   "catsen": "キャットセン",
   "loggedInVia": "{provider}経由でログイン",
   "@loggedInVia": {
@@ -144,7 +144,7 @@
   "noNotifications": "いつか、どこかで誰かがあなたにメンションしてくれるでしょう。",
   "backgroundNotifications": "バックグラウンド通知",
   "optionNotAvailableOnYourPlatform": "このオプションはお使いのプラットフォームでは利用できません。",
-  "optionNotAvailablePaywalled": "このオプションはChatsenサポーター専用です。",
+  "optionNotAvailablePaywalled": "このオプションはColdChatサポーター専用です。",
   "clearAll": "すべてクリア",
   "cache": "キャッシュ",
   "clearCache": "キャッシュをクリア",
