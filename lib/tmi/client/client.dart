@@ -207,12 +207,18 @@ class Client {
   static const int _historyLaterChunk = 40;
 
   Future<void> insertHistoryMessages(Connection connection, List<String> messages) async {
-    // Parse once (skip ROOMSTATE), preserving chronological (oldest->newest)
-    // order as delivered by the recent-messages endpoint.
+    // Parse once, preserving chronological (oldest->newest) order as delivered
+    // by the recent-messages endpoint. Skip transient channel-state events:
+    // ROOMSTATE, and NOTICE (slow/emote/follower-mode toggles etc.). These
+    // describe past room state — replaying them is noise, and because NOTICEs
+    // carry no `id` tag they also bypass the id-based dedup below, so each of
+    // the three history passes (cached paint, lazy fetch, post-JOIN backfill)
+    // would re-add them, producing the duplicate "now in slow mode / no longer
+    // in slow mode" spam. USERNOTICE (subs/raids) is intentionally kept.
     final parsed = <irc.Message>[];
     for (final message in messages) {
       final ircMessage = irc.Message.fromEvent(message);
-      if (ircMessage.command == 'ROOMSTATE') continue;
+      if (ircMessage.command == 'ROOMSTATE' || ircMessage.command == 'NOTICE') continue;
       parsed.add(ircMessage);
     }
     if (parsed.isEmpty) return;
