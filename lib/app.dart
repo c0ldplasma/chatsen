@@ -140,13 +140,13 @@ class _AppState extends State<App> implements ClientListener {
             // darkTheme: M3Parser.parse(M3Themes.themes['green']!, dark: true),
             theme: M3Parser.patchTheme(
               ThemeData(
-                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF00FF00),
+                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF2196F3),
                 brightness: Brightness.light,
               ),
             ),
             darkTheme: M3Parser.patchTheme(
               ThemeData(
-                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF00FF00),
+                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF2196F3),
                 brightness: Brightness.dark,
               ),
             ),
