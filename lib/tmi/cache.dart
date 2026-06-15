@@ -15,7 +15,50 @@ class EmoteBadgeCache {
   final Box box;
   final List<Provider> providers;
 
-  EmoteBadgeCache({required this.box, required this.providers});
+  // Cap the number of channels whose emotes/badges/history we retain on disk
+  // so the box doesn't grow without bound as more channels are opened.
+  static const int maxCachedChannels = 60;
+  static const String _lruKey = 'channelLru';
+
+  EmoteBadgeCache({required this.box, required this.providers}) {
+    _purgeLegacyKeys();
+  }
+
+  // Earlier versions keyed channel caches by room id (and an un-versioned
+  // login). Drop those orphaned entries — they are never read again.
+  void _purgeLegacyKeys() {
+    final stale = box.keys.where((k) {
+      if (k is! String) return false;
+      final isChannelScoped = k.startsWith('channelEmotes:') || k.startsWith('channelBadges:') || k.startsWith('history:');
+      return isChannelScoped && !k.contains(':v2:');
+    }).toList();
+    if (stale.isNotEmpty) box.deleteAll(stale);
+  }
+
+  // Track channel access order (most-recent last) and evict the oldest
+  // channels' cached blobs once the cap is exceeded.
+  void _touchChannel(String login) {
+    final raw = box.get(_lruKey);
+    final lru = <String>[
+      if (raw is String)
+        ...(() {
+          try {
+            final decoded = json.decode(raw);
+            if (decoded is List) return List<String>.from(decoded);
+          } catch (_) {}
+          return const <String>[];
+        })()
+    ];
+    lru.remove(login);
+    lru.add(login);
+    while (lru.length > maxCachedChannels) {
+      final evict = lru.removeAt(0);
+      box.delete(channelEmotesKey(evict));
+      box.delete(channelBadgesKey(evict));
+      box.delete(_historyKey(evict));
+    }
+    box.put(_lruKey, json.encode(lru));
+  }
 
   Provider? _providerByName(String? name) {
     if (name == null) return null;
@@ -152,13 +195,28 @@ class EmoteBadgeCache {
     );
   }
 
-  String channelEmotesKey(String channelId) => 'channelEmotes:$channelId';
-  String channelBadgesKey(String channelId) => 'channelBadges:$channelId';
+  String channelEmotesKey(String channelLogin) => 'channelEmotes:v2:$channelLogin';
+  String channelBadgesKey(String channelLogin) => 'channelBadges:v2:$channelLogin';
   static const String globalEmotesKey = 'globalEmotes';
   static const String globalBadgesKey = 'globalBadges';
   static const String globalUserBadgesKey = 'globalUserBadges';
 
-  String _historyKey(String channelLogin) => 'history:$channelLogin';
+  String _historyKey(String channelLogin) => 'history:v2:$channelLogin';
+
+  // Channel-scoped helpers that also maintain the LRU eviction index.
+  List<Emote> loadChannelEmotes(String channelLogin) => loadEmotes(channelEmotesKey(channelLogin));
+
+  Future<void> saveChannelEmotes(String channelLogin, List<Emote> emotes) {
+    _touchChannel(channelLogin);
+    return saveEmotes(channelEmotesKey(channelLogin), emotes);
+  }
+
+  List<CustomBadge> loadChannelBadges(String channelLogin) => loadBadges(channelBadgesKey(channelLogin));
+
+  Future<void> saveChannelBadges(String channelLogin, List<CustomBadge> badges) {
+    _touchChannel(channelLogin);
+    return saveBadges(channelBadgesKey(channelLogin), badges);
+  }
 
   List<String> loadHistory(String channelLogin) {
     final raw = box.get(_historyKey(channelLogin));
@@ -171,6 +229,7 @@ class EmoteBadgeCache {
   }
 
   Future<void> saveHistory(String channelLogin, List<String> messages) {
+    _touchChannel(channelLogin);
     return box.put(_historyKey(channelLogin), json.encode(messages));
   }
 }

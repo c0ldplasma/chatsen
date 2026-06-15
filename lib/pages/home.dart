@@ -57,6 +57,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   TabController? _tabController;
   int _lastLength = -1;
+  // Always reflects the channel list from the latest build so the tab listener
+  // doesn't capture a stale list (the controller is only rebuilt when the
+  // length changes, but channels can be swapped/reordered at the same count).
+  List<Channel> _channels = const [];
 
   int _initialIndexFor(List<Channel> channels) {
     final lastName = Hive.box('Settings').get(_lastChannelKey);
@@ -65,15 +69,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return idx >= 0 ? idx + 1 : 0;
   }
 
-  void _onTabChanged(List<Channel> channels) {
+  void _onTabChanged() {
     final controller = _tabController;
     if (controller == null || controller.indexIsChanging) return;
     final index = controller.index;
-    final name = index == 0 ? '' : (index - 1 < channels.length ? channels[index - 1].name : '');
+    final name = index == 0 ? '' : (index - 1 < _channels.length ? _channels[index - 1].name : '');
     Hive.box('Settings').put(_lastChannelKey, name);
   }
 
   TabController _ensureController(List<Channel> channels) {
+    _channels = channels;
     final desiredLength = 1 + channels.length;
     if (_tabController == null || _lastLength != desiredLength) {
       _tabController?.dispose();
@@ -82,7 +87,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         vsync: this,
         initialIndex: _initialIndexFor(channels).clamp(0, desiredLength - 1),
       );
-      _tabController!.addListener(() => _onTabChanged(channels));
+      _tabController!.addListener(_onTabChanged);
       _lastLength = desiredLength;
     }
     return _tabController!;

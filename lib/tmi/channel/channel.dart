@@ -266,8 +266,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
 
     final merged = [for (final list in results) ...list];
     channelEmotes.emit(merged);
-    final cache = client.cache;
-    if (cache != null) cache.saveEmotes(cache.channelEmotesKey(_cacheKey), merged);
+    client.cache?.saveChannelEmotes(_cacheKey, merged);
   }
 
   Future<void> refreshBadges() async {
@@ -287,8 +286,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
 
     final merged = [for (final list in results) ...list];
     channelBadges.emit(merged);
-    final cache = client.cache;
-    if (cache != null) cache.saveBadges(cache.channelBadgesKey(_cacheKey), merged);
+    client.cache?.saveChannelBadges(_cacheKey, merged);
   }
 
   String get _cacheKey => name.replaceFirst('#', '').toLowerCase();
@@ -297,11 +295,11 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     final cache = client.cache;
     if (cache == null) return;
     if (channelEmotes.state.isEmpty) {
-      final cached = cache.loadEmotes(cache.channelEmotesKey(_cacheKey));
+      final cached = cache.loadChannelEmotes(_cacheKey);
       if (cached.isNotEmpty) channelEmotes.emit(cached);
     }
     if (channelBadges.state.isEmpty) {
-      final cached = cache.loadBadges(cache.channelBadgesKey(_cacheKey));
+      final cached = cache.loadChannelBadges(_cacheKey);
       if (cached.isNotEmpty) channelBadges.emit(cached);
     }
   }
