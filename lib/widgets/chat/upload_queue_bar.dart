@@ -150,7 +150,10 @@ class _UploadChip extends StatelessWidget {
         final percent = progress == null ? '' : ' ${(progress * 100).round()}%';
         return '${l10n.uploadingTo(task.hostName)}$percent';
       case UploadStatus.processing:
-        return l10n.uploadProcessing;
+        // Count the wait so a slow host reads as slow, not stuck. Hidden for
+        // the first second to avoid flashing "0s" on fast hosts.
+        final seconds = task.processingSeconds ?? 0;
+        return seconds >= 1 ? '${l10n.uploadProcessing} ${seconds}s' : l10n.uploadProcessing;
       case UploadStatus.failed:
         return l10n.uploadFailed;
       case UploadStatus.done:

@@ -52,6 +52,15 @@ class UploadTask {
   /// When the last byte moved, for stall detection.
   DateTime lastProgressAt = DateTime.now();
 
+  /// When every byte was out and we started waiting on the host. Drives both
+  /// the elapsed-seconds label and the processing timeout.
+  DateTime? processingSince;
+
+  /// Why the watchdog aborted the current attempt, if it did. Closing the
+  /// client surfaces as a generic connection error, so the real reason is
+  /// recorded here first and preferred when reporting the failure.
+  String? abortReason;
+
   UploadTask({
     required this.id,
     required this.filename,
@@ -66,6 +75,13 @@ class UploadTask {
     if (size <= 0) return null;
     final ratio = sent / size;
     return ratio.isFinite ? ratio.clamp(0.0, 1.0) : null;
+  }
+
+  /// Whole seconds spent waiting on the host, or null outside that phase.
+  int? get processingSeconds {
+    final since = processingSince;
+    if (status != UploadStatus.processing || since == null) return null;
+    return DateTime.now().difference(since).inSeconds;
   }
 
   bool get isFinished => status == UploadStatus.done || status == UploadStatus.cancelled;
