@@ -100,17 +100,30 @@ class _UploadChip extends StatelessWidget {
                       ),
                     ),
                   if (failed)
-                    Text(
-                      task.error ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onErrorContainer,
-                          ),
+                    // Short and localized; the raw exception text from every
+                    // host is one tap away instead of truncated in the chip.
+                    InkWell(
+                      onTap: () => _showDetails(context, l10n),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(text: '${_errorMessage(l10n)} · '),
+                            TextSpan(
+                              text: l10n.uploadErrorDetails,
+                              style: const TextStyle(decoration: TextDecoration.underline),
+                            ),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onErrorContainer,
+                            ),
+                      ),
                     ),
                   // Only shown while a later host is carrying the upload, so
                   // switching hosts is never silent.
-                  if (!failed && task.previousHostError != null)
+                  if (!failed && task.attempts.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Text(
@@ -139,6 +152,52 @@ class _UploadChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  String _errorMessage(AppLocalizations l10n) {
+    final host = task.errorHost ?? task.hostName;
+    switch (task.errorKind) {
+      case UploadErrorKind.offline:
+        return l10n.uploadErrorOffline;
+      case UploadErrorKind.timeout:
+        return l10n.uploadErrorTimeout(host);
+      case UploadErrorKind.rejected:
+        return l10n.uploadErrorRejected(host, '${task.errorStatus ?? '?'}');
+      case UploadErrorKind.badResponse:
+        return l10n.uploadErrorBadResponse(host);
+      case UploadErrorKind.network:
+        return l10n.uploadErrorNetwork(host);
+      case UploadErrorKind.unreadableFile:
+        return l10n.uploadErrorUnreadableFile;
+      case UploadErrorKind.unknown:
+      case null:
+        return l10n.uploadErrorUnknown(host);
+    }
+  }
+
+  /// Every host's technical error, selectable so it can be copied into a bug
+  /// report.
+  void _showDetails(BuildContext context, AppLocalizations l10n) {
+    final lines = [
+      for (final failure in task.attempts) '${failure.hostName}: ${failure.message}',
+      if (task.errorDetail != null) task.errorDetail!,
+    ];
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(_errorMessage(l10n)),
+        content: SingleChildScrollView(
+          child: SelectableText(lines.join('\n\n')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.close),
+          ),
+        ],
       ),
     );
   }

@@ -250,6 +250,54 @@ abstract class AppLocalizations {
   /// **'Cancel upload'**
   String get uploadCancel;
 
+  /// No description provided for @uploadErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get uploadErrorOffline;
+
+  /// No description provided for @uploadErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} is not responding'**
+  String uploadErrorTimeout(String host);
+
+  /// No description provided for @uploadErrorRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} rejected the upload (HTTP {status})'**
+  String uploadErrorRejected(String host, String status);
+
+  /// No description provided for @uploadErrorBadResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} sent an unexpected response'**
+  String uploadErrorBadResponse(String host);
+
+  /// No description provided for @uploadErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect to {host}'**
+  String uploadErrorNetwork(String host);
+
+  /// No description provided for @uploadErrorUnreadableFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the file'**
+  String get uploadErrorUnreadableFile;
+
+  /// No description provided for @uploadErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload to {host} failed'**
+  String uploadErrorUnknown(String host);
+
+  /// No description provided for @uploadErrorDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get uploadErrorDetails;
+
   /// No description provided for @uploadRetryingWith.
   ///
   /// In en, this message translates to:

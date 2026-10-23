@@ -1,5 +1,30 @@
 import 'package:http/http.dart' as http;
 
+import '../../api/filesharing/upload_host.dart';
+
+/// What the failed chip tells the user — one short, localized line each.
+enum UploadErrorKind {
+  /// Every host failed without a single HTTP response: the phone is offline.
+  offline,
+
+  /// The host stopped responding (stall, no answer after upload, attempt cap).
+  timeout,
+
+  /// The host answered, but refused (non-200).
+  rejected,
+
+  /// The host answered 200 without a link.
+  badResponse,
+
+  /// Could not reach this host, while others behaved differently.
+  network,
+
+  /// The picked file could not be read; no host was tried.
+  unreadableFile,
+
+  unknown,
+}
+
 enum UploadStatus {
   /// Bytes are going out; [UploadTask.progress] is meaningful.
   uploading,
@@ -39,12 +64,22 @@ class UploadTask {
   /// Name of the host currently being tried, for "uploading to Litterbox…".
   String hostName;
 
-  /// Set once a previous host failed and the chain moved on, so the chip can
-  /// explain why it is on its second attempt.
-  String? previousHostError;
+  /// Every host that failed in the current run, oldest first. Non-empty while
+  /// uploading means the chain has moved on ("Retrying with nuuls…"); after a
+  /// failure it is the technical detail behind the short message.
+  final List<UploadFailure> attempts = [];
 
   String? url;
-  String? error;
+
+  /// Set once the run ended without a link.
+  UploadErrorKind? errorKind;
+
+  /// The host the short message names, and its HTTP status if it answered.
+  String? errorHost;
+  int? errorStatus;
+
+  /// Technical detail when no host was involved (e.g. the file read failed).
+  String? errorDetail;
 
   /// The client for the in-flight attempt; closing it aborts the request.
   http.Client? client;
@@ -59,7 +94,7 @@ class UploadTask {
   /// Why the watchdog aborted the current attempt, if it did. Closing the
   /// client surfaces as a generic connection error, so the real reason is
   /// recorded here first and preferred when reporting the failure.
-  String? abortReason;
+  UploadFailure? abortFailure;
 
   UploadTask({
     required this.id,
