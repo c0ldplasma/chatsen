@@ -419,4 +419,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get emoteMenuButtonDownloadFailed =>
       'Das Emote konnte nicht heruntergeladen werden. Der Button wurde nicht geändert.';
+
+  @override
+  String get takePhoto => 'Foto aufnehmen';
+
+  @override
+  String get chooseFromLibrary => 'Aus Mediathek auswählen';
+
+  @override
+  String get cameraUnavailable =>
+      'Die Kamera konnte nicht geöffnet werden. Prüfe, ob ColdChat Zugriff auf die Kamera hat.';
 }

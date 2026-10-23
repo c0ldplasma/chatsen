@@ -879,6 +879,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t download that emote. The button wasn\'t changed.'**
   String get emoteMenuButtonDownloadFailed;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get takePhoto;
+
+  /// No description provided for @chooseFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from library'**
+  String get chooseFromLibrary;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera couldn\'t be opened. Check that ColdChat has camera access.'**
+  String get cameraUnavailable;
 }
 
 class _AppLocalizationsDelegate

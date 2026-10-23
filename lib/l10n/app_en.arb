@@ -220,5 +220,8 @@
   "emoteMenuButtonGrayscale": "Show emote menu button in grayscale",
   "chooseEmoteMenuButton": "Tap an emote to use it as the emote menu button",
   "resetToKappa": "Reset to Kappa",
-  "emoteMenuButtonDownloadFailed": "Couldn't download that emote. The button wasn't changed."
+  "emoteMenuButtonDownloadFailed": "Couldn't download that emote. The button wasn't changed.",
+  "takePhoto": "Take photo",
+  "chooseFromLibrary": "Choose from library",
+  "cameraUnavailable": "The camera couldn't be opened. Check that ColdChat has camera access."
 }
