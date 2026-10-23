@@ -3,11 +3,31 @@ import 'package:chatsen/api/twitch/twitch_badge.dart';
 import 'package:chatsen/api/twitch/twitch_emote.dart';
 import 'package:http/http.dart' as http;
 
+import '../json_isolate.dart';
 import '/data/twitch/search_data.dart';
 import '/data/twitch/stream_data.dart';
 import '/data/twitch/token_data.dart';
 import '/data/twitch/user_data.dart';
 import 'twitch_ban_response_data.dart';
+
+Map<String, Map<String, TwitchBadge>> _badgeSetsFromJson(dynamic json) => {
+      for (final badgeData in json['badge_sets'].entries)
+        badgeData.key: {
+          for (final badgeVersion in badgeData.value['versions'].entries) badgeVersion.key: TwitchBadge.fromJson(badgeVersion.value),
+        },
+    };
+
+/// Thrown when Twitch rejects an access token (401 from /oauth2/validate).
+/// Distinct from a generic failure so callers can tell "the login is dead, ask
+/// the user to sign in again" apart from "the network is down, try later".
+class TwitchTokenInvalidException implements Exception {
+  final String message;
+
+  TwitchTokenInvalidException([this.message = 'The access token is no longer valid']);
+
+  @override
+  String toString() => 'TwitchTokenInvalidException: $message';
+}
 
 class Twitch {
   static Future<List<String>> blockedUsers(TokenData tokenData) async {
@@ -45,6 +65,15 @@ class Twitch {
       },
     );
     final responseJson = json.decode(utf8.decode(response.bodyBytes));
+    // A rejected token answers 401 with {status, message} and no login/client_id,
+    // which used to blow up on the non-nullable `login` further down. Surface it
+    // as a typed error instead so callers can react to an expired login.
+    if (response.statusCode == 401) {
+      throw TwitchTokenInvalidException(responseJson['message'] ?? 'invalid access token');
+    }
+    if (response.statusCode != 200) {
+      throw Exception('Token validation failed (${response.statusCode}): ${responseJson['message']}');
+    }
     return TokenData(
       clientId: responseJson['client_id'],
       login: responseJson['login'],
@@ -77,30 +106,12 @@ class Twitch {
 
   static Future<Map<String, Map<String, TwitchBadge>>> globalBadges() async {
     final response = await http.get(Uri.parse('https://badges.twitch.tv/v1/badges/global/display'));
-    final responseJson = json.decode(utf8.decode(response.bodyBytes));
-    return {
-      for (final badgeData in responseJson['badge_sets'].entries)
-        badgeData.key: {
-          for (final badgeVersion in badgeData.value['versions'].entries)
-            badgeVersion.key: TwitchBadge.fromJson(
-              badgeVersion.value,
-            ),
-        },
-    };
+    return decodeJsonInIsolate(response.bodyBytes, _badgeSetsFromJson);
   }
 
   static Future<Map<String, Map<String, TwitchBadge>>> channelBadges(String uid) async {
     final response = await http.get(Uri.parse('https://badges.twitch.tv/v1/badges/channels/$uid/display')); // ?language=en
-    final responseJson = json.decode(utf8.decode(response.bodyBytes));
-    return {
-      for (final badgeData in responseJson['badge_sets'].entries)
-        badgeData.key: {
-          for (final badgeVersion in badgeData.value['versions'].entries)
-            badgeVersion.key: TwitchBadge.fromJson(
-              badgeVersion.value,
-            ),
-        },
-    };
+    return decodeJsonInIsolate(response.bodyBytes, _badgeSetsFromJson);
   }
 
   static Future<List<StreamData>> streams(

@@ -9,7 +9,7 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get chatsen => 'Chatsen';
+  String get chatsen => 'ColdChat';
 
   @override
   String get catsen => 'Catsen';
@@ -33,6 +33,17 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get expiresNever => '절대 만료되지 않음';
+
+  @override
+  String get loginExpired => 'Login expired';
+
+  @override
+  String loginExpiredDescription(String login) {
+    return 'Twitch rejected the login for $login. Chat stays disconnected until you sign in again.';
+  }
+
+  @override
+  String get signInAgain => 'Sign in';
 
   @override
   String expiresIn(String time) {
@@ -320,7 +331,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '해당 옵션은 사용자의 플랫폼에서 사용할 수 없습니다.';
 
   @override
-  String get optionNotAvailablePaywalled => '해당 옵션은 Chatsen 후원자 전용 옵션입니다.';
+  String get optionNotAvailablePaywalled => '해당 옵션은 ColdChat 후원자 전용 옵션입니다.';
 
   @override
   String get clearAll => '모두 지우기';

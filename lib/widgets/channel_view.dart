@@ -10,6 +10,7 @@ import 'package:chatsen/l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../api/catbox/catbox.dart';
+import '../components/dark_bar.dart';
 import '../components/surface.dart';
 import '../components/tile.dart';
 import '../data/custom_command.dart';
@@ -226,13 +227,10 @@ class ChannelViewState extends State<ChannelView> {
           ),
           // child: Container(),
         ),
-        Surface(
-          type: SurfaceType.surfaceVariant,
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+        DarkBar(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
                 if (replyChannelMessageChat != null)
                   Surface(
                     type: SurfaceType.error,
@@ -370,7 +368,6 @@ class ChannelViewState extends State<ChannelView> {
                           height: 48.0,
                           child: Icon(
                             Icons.photo_size_select_actual_outlined,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -404,7 +401,6 @@ class ChannelViewState extends State<ChannelView> {
                           height: 48.0,
                           child: Icon(
                             Icons.emoji_emotions_outlined,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -421,7 +417,6 @@ class ChannelViewState extends State<ChannelView> {
                           height: 48.0,
                           child: Icon(
                             spamming ? Icons.send_and_archive_outlined : Icons.send_outlined,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -451,8 +446,7 @@ class ChannelViewState extends State<ChannelView> {
                       },
                     ),
                   ),
-              ],
-            ),
+            ],
           ),
         ),
       ],

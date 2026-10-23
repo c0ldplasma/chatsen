@@ -57,7 +57,7 @@ class _BlockedChatMessageState extends State<BlockedChatMessage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0 * (widget.messageAppearance.compact ? 1.0 : 2.0)),
+              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0 * (widget.messageAppearance.compact ? 1.0 : 2.0)),
               child: Text.rich(
                 TextSpan(
                   children: [
@@ -87,6 +87,15 @@ class _BlockedChatMessageState extends State<BlockedChatMessage> {
 
 // ignore: must_be_immutable
 class ChatMessage extends StatelessWidget {
+  // Twitch's classic text emoticons (the smiley set) are tiny glyph images
+  // and look oversized when rendered at the same height as named emotes like
+  // Kappa/PogChamp, so they get a smaller, near-text height.
+  static const Set<String> _twitchClassicEmoticons = {
+    ':)', ':(', ':D', '>(', ':|', 'O_o', 'B)', ':O', '<3', ':/', ';)', ':P', ';P', 'R)',
+    ':-)', ':-(', ':-D', '>:(', ':-|', 'O_O', 'B-)', ':-O', ':-/', ';-)', ':-P', ';-P', 'R-)',
+    ':7', ':>', ':S', '#/', '<]', ':z',
+  };
+
   final ChannelMessage message;
   late MessageAppearance messageAppearance;
   final bool renderMentions;
@@ -106,7 +115,7 @@ class ChatMessage extends StatelessWidget {
             final chatMessage = message as ChannelMessageChat;
             if (chatMessage.subInfo != null) {
               return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0 * (messageAppearance.compact ? 1.0 : 2.0)),
+                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0 * (messageAppearance.compact ? 1.0 : 2.0)),
                 child: Wrap(
                   alignment: WrapAlignment.start,
                   children: [
@@ -161,7 +170,7 @@ class ChatMessage extends StatelessWidget {
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0 * (messageAppearance.compact ? 1.0 : 2.0)),
+                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0 * (messageAppearance.compact ? 1.0 : 2.0)),
                 child: buildMessageContent(context, chatMessage, messageAppearance),
               ),
             );
@@ -252,7 +261,6 @@ class ChatMessage extends StatelessWidget {
                           : Image(
                               image: CachedNetworkImageProvider(badge.mipmap.last),
                               height: 20.0 * messageAppearance.scale,
-                              // scale: (1.0 / messageAppearance.scale) * 4.0,
                             ),
                     ),
                   ),
@@ -293,7 +301,7 @@ class ChatMessage extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 4.0) * messageAppearance.scale,
                           child: Image(
                             image: CachedNetworkImageProvider(split.mipmap.last),
-                            height: (split.provider.name == 'Emoji' ? 24.0 : 32.0) * (1.0 / messageAppearance.scale),
+                            height: (split.provider.name == 'Emoji' || (split.provider.name == 'Twitch' && _twitchClassicEmoticons.contains(split.name)) ? 24.0 : 32.0) * (1.0 / messageAppearance.scale),
                             filterQuality: FilterQuality.high,
                           ),
                         ),

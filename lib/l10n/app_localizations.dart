@@ -145,7 +145,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatsen.
   ///
   /// In en, this message translates to:
-  /// **'Chatsen'**
+  /// **'ColdChat'**
   String get chatsen;
 
   /// No description provided for @catsen.
@@ -189,6 +189,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Never expires'**
   String get expiresNever;
+
+  /// No description provided for @loginExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Login expired'**
+  String get loginExpired;
+
+  /// No description provided for @loginExpiredDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch rejected the login for {login}. Chat stays disconnected until you sign in again.'**
+  String loginExpiredDescription(String login);
+
+  /// No description provided for @signInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInAgain;
 
   /// No description provided for @expiresIn.
   ///
@@ -721,7 +739,7 @@ abstract class AppLocalizations {
   /// No description provided for @optionNotAvailablePaywalled.
   ///
   /// In en, this message translates to:
-  /// **'This option is for Chatsen supporters only.'**
+  /// **'This option is for ColdChat supporters only.'**
   String get optionNotAvailablePaywalled;
 
   /// No description provided for @clearAll.

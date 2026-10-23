@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 
+import '/tmi/client/client.dart';
 import '/data/twitch/token_data.dart';
 import '/data/twitch/user_data.dart';
 import '/data/twitch_account.dart';
@@ -31,16 +33,28 @@ class _VerifyUserModalState extends State<VerifyUserModal> {
     future = Twitch.userData(widget.tokenData);
     future.then(
       (value) async {
-        await Hive.box('TwitchAccounts').put(
-          widget.tokenData.hash,
-          TwitchAccount(
-            tokenData: widget.tokenData,
-            userData: value,
-            cookies: widget.cookies,
-          ),
+        final twitchAccount = TwitchAccount(
+          tokenData: widget.tokenData,
+          userData: value,
+          cookies: widget.cookies,
         );
 
-        Navigator.of(context).pop();
+        // Keyed by userId@clientId, so signing in again as the same user
+        // replaces the stale entry (and its dead expiresAt) in place.
+        await Hive.box('TwitchAccounts').put(widget.tokenData.hash, twitchAccount);
+
+        // Re-login for the account we are already using (or the very first
+        // login) should take effect immediately — otherwise the connection sits
+        // in ConnectionInvalidCredentials with the old token until an app
+        // restart. Adding a *second* account still doesn't steal the session.
+        final accountSettingsBox = Hive.box('AccountSettings');
+        final activeHash = accountSettingsBox.get('activeTwitchAccount');
+        if (activeHash == null || activeHash == widget.tokenData.hash) {
+          await accountSettingsBox.put('activeTwitchAccount', widget.tokenData.hash);
+          if (mounted) await context.read<Client>().connectAs(twitchAccount);
+        }
+
+        if (mounted) Navigator.of(context).pop();
       },
     );
     super.initState();

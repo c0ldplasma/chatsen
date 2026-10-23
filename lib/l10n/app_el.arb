@@ -1,5 +1,5 @@
 {
-  "chatsen": "Chatsen",
+  "chatsen": "ColdChat",
   "catsen": "Catsen",
   "loggedInVia": "Συνδέθηκε μέσω {provider}",
   "@loggedInVia": {
@@ -144,7 +144,7 @@
   "noNotifications": "Κάποιος, κάπου, θα σας αναφέρει κάποια μέρα.",
   "backgroundNotifications": "Ειδοποιήσεις παρασκηνίου",
   "optionNotAvailableOnYourPlatform": "Αυτή η επιλογή δεν είναι διαθέσιμη στην πλατφόρμα σας.",
-  "optionNotAvailablePaywalled": "Αυτή η επιλογή είναι μόνο για υποστηρικτές του Chatsen.",
+  "optionNotAvailablePaywalled": "Αυτή η επιλογή είναι μόνο για υποστηρικτές του ColdChat.",
   "clearAll": "Εκκαθάριση όλων",
   "cache": "Προσωρινή μνήμη",
   "clearCache": "Εκκαθάριση προσωρινής μνήμης",

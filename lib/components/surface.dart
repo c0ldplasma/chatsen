@@ -63,6 +63,8 @@ class Surface extends StatelessWidget {
         backgroundColor = Theme.of(context).colorScheme.surfaceVariant;
         foregroundColor = Theme.of(context).colorScheme.onSurfaceVariant;
         break;
+      case SurfaceType.transparent:
+        break;
     }
 
     return Theme(

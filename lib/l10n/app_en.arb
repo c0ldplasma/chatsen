@@ -1,5 +1,5 @@
 {
-  "chatsen": "Chatsen",
+  "chatsen": "ColdChat",
   "catsen": "Catsen",
   "translationAuthorNames": "",
   "@translationAuthorNames": {
@@ -17,6 +17,16 @@
   "privacyPolicy": "Privacy Policy",
   "settings": "Settings",
   "expiresNever": "Never expires",
+  "loginExpired": "Login expired",
+  "loginExpiredDescription": "Twitch rejected the login for {login}. Chat stays disconnected until you sign in again.",
+  "@loginExpiredDescription": {
+    "placeholders": {
+      "login": {
+        "type": "String"
+      }
+    }
+  },
+  "signInAgain": "Sign in",
   "expiresIn": "Expires in {time}",
   "@expiresIn": {
     "placeholders": {
@@ -168,7 +178,7 @@
   "noNotifications": "Someone, somewhere, will mention you someday.",
   "backgroundNotifications": "Background notifications",
   "optionNotAvailableOnYourPlatform": "This option is not available on your platform.",
-  "optionNotAvailablePaywalled": "This option is for Chatsen supporters only.",
+  "optionNotAvailablePaywalled": "This option is for ColdChat supporters only.",
   "clearAll": "Clear all",
   "cache": "Cache",
   "clearCache": "Clear cache",
