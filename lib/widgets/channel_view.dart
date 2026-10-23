@@ -23,6 +23,7 @@ import '../tmi/channel/channel.dart';
 import '../tmi/channel/messages/channel_message_chat.dart';
 import 'chat/upload_queue_bar.dart';
 import 'chat_view.dart';
+import 'emoji_glyph.dart';
 
 import 'package:collection/collection.dart';
 
@@ -257,8 +258,8 @@ class ChannelViewState extends State<ChannelView> {
       for (final emote in sortedEmotes)
         AutocompletionItem(
           type: AutocompletionType.emote,
-          prefix: CachedNetworkImage(imageUrl: emote.mipmap.last, width: 24.0, height: 24.0),
-          shortened: CachedNetworkImage(imageUrl: emote.mipmap.last, width: 24.0, height: 24.0),
+          prefix: EmoteGlyph(emote: emote, size: 24.0, image: () => CachedNetworkImage(imageUrl: emote.mipmap.last, width: 24.0, height: 24.0)),
+          shortened: EmoteGlyph(emote: emote, size: 24.0, image: () => CachedNetworkImage(imageUrl: emote.mipmap.last, width: 24.0, height: 24.0)),
           title: emote.name,
           subtitle: emote.provider.name,
           onTap: () {

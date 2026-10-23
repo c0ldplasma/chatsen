@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import '../../components/surface.dart';
 import '../../data/emote.dart';
 import '../../providers/emojis.dart';
+import '../emoji_glyph.dart';
 import '../../tmi/channel/channel.dart';
 
 class SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
@@ -208,9 +209,13 @@ class _EmotePickerState extends State<EmotePicker> {
                                         onTap: () async => widget.insertFieldInput(emote.code ?? emote.name),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: CachedNetworkImage(
-                                            imageUrl: emote.mipmap.last,
-                                            fit: BoxFit.cover,
+                                          child: EmoteGlyph(
+                                            emote: emote,
+                                            size: 32.0,
+                                            image: () => CachedNetworkImage(
+                                              imageUrl: emote.mipmap.last,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),

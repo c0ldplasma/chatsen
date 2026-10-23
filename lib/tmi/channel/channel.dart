@@ -16,6 +16,7 @@ import '/tmi/channel/channel_state.dart';
 import '/tmi/channel/messages/channel_message_state_change.dart';
 import '/providers/badge_provider.dart';
 import '/providers/emote_provider.dart';
+import '/providers/emojis.dart';
 import '/tmi/badges.dart';
 import '/tmi/channel/channel_info.dart';
 import 'messages/channel_message_chat.dart';
@@ -51,6 +52,9 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     if (cached != null) return cached;
     final map = <String, Emote>{};
     for (final e in client.globalEmotes.state) {
+      // Emojis stay plain text so they render in the platform's emoji font,
+      // the same as emojis attached to other text already do.
+      if (e.provider is EmojiProvider) continue;
       map[e.code ?? e.name] = e;
     }
     for (final e in channelEmotes.state) {
