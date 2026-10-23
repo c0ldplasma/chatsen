@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
@@ -40,6 +42,8 @@ class SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) => false;
 }
 
+const twitchSection = 'Twitch';
+
 enum PickerMode {
   gif,
   emote,
@@ -68,15 +72,26 @@ class _EmotePickerState extends State<EmotePicker> {
   Future<http.Response>? gifSearch;
   TextEditingController searchController = TextEditingController();
   ScrollController scrollController = ScrollController();
+  late final List<StreamSubscription> emoteSubscriptions;
 
   @override
   void initState() {
     gifSearch = http.get(Uri.parse('https://g.tenor.com/v1/search?q=forsen&key=LIVDSRZULELA&limit=50'));
+    // Emotes keep loading after the picker opens (Twitch's only arrive once
+    // the chat connection is up), so rebuild when any list changes.
+    emoteSubscriptions = [
+      widget.channel.channelEmotes.stream.listen((_) => setState(() {})),
+      widget.channel.client.globalEmotes.stream.listen((_) => setState(() {})),
+      widget.channel.client.twitchUserEmotes.stream.listen((_) => setState(() {})),
+    ];
     super.initState();
   }
 
   @override
   void dispose() {
+    for (final subscription in emoteSubscriptions) {
+      subscription.cancel();
+    }
     searchController.dispose();
     scrollController.dispose();
     super.dispose();
@@ -100,7 +115,14 @@ class _EmotePickerState extends State<EmotePicker> {
         groupKeys.putIfAbsent(category.key ?? providerGroup.key.name, () => GlobalKey());
       }
     }
+    // There are always Twitch emotes, so keep their section in place with a
+    // spinner while they load instead of having it pop in later.
+    if (!emoteGroups.containsKey(twitchSection)) {
+      emoteGroups[twitchSection] = [];
+      groupKeys[twitchSection] = GlobalKey();
+    }
     final groups = {...emoteGroups, ...emojiGroups};
+    final search = searchController.text.toLowerCase();
 
     const icons = {
       "Symbols": Icon(Icons.star_border_outlined),
@@ -185,7 +207,7 @@ class _EmotePickerState extends State<EmotePicker> {
                             ),
                           ],
                         ),
-                        for (final category in groups.entries.where((group) => group.value.any((emote) => emote.name.toLowerCase().contains(searchController.text.toLowerCase()))))
+                        for (final category in groups.entries.where((group) => (group.value.isEmpty && search.isEmpty) || group.value.any((emote) => emote.name.toLowerCase().contains(search))))
                           MultiSliver(
                             pushPinnedChildren: true,
                             children: [
@@ -199,10 +221,22 @@ class _EmotePickerState extends State<EmotePicker> {
                                   ),
                                 ),
                               ),
+                              if (category.value.isEmpty)
+                                const SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(
+                                      child: SizedBox.square(
+                                        dimension: 24.0,
+                                        child: CircularProgressIndicator(strokeWidth: 2.0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               SliverGrid.extent(
                                 maxCrossAxisExtent: 32.0 + 16.0,
                                 children: [
-                                  for (final emote in category.value.where((emote) => emote.name.toLowerCase().contains(searchController.text.toLowerCase())))
+                                  for (final emote in category.value.where((emote) => emote.name.toLowerCase().contains(search)))
                                     Tooltip(
                                       message: emote.name,
                                       child: InkWell(
@@ -241,15 +275,22 @@ class _EmotePickerState extends State<EmotePicker> {
                               child: Surface(
                                 type: SurfaceType.surface,
                                 onTap: () async {
-                                  if (groupKeys[category] == null) return;
-                                  final context = groupKeys[category]!.currentContext!;
-                                  Scrollable.maybeOf(context)!.position.jumpTo(Scrollable.maybeOf(context)!.position.maxScrollExtent);
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    Scrollable.maybeOf(context)!.position.ensureVisible(
-                                          context.findRenderObject()!,
-                                          duration: const Duration(milliseconds: 500),
-                                        );
-                                  });
+                                  // Null when search hides the section.
+                                  final context = groupKeys[category]?.currentContext;
+                                  if (context == null) return;
+                                  // Scroll straight to the section. The viewport lays out every
+                                  // section header, so the offset is known even for sections
+                                  // far off screen; no need to detour via the bottom first.
+                                  final target = context.findRenderObject();
+                                  final viewport = target == null ? null : RenderAbstractViewport.maybeOf(target);
+                                  if (target == null || viewport == null) return;
+                                  final position = scrollController.position;
+                                  final offset = viewport.getOffsetToReveal(target, 0.0).offset.clamp(position.minScrollExtent, position.maxScrollExtent);
+                                  await position.animateTo(
+                                    offset,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOutCubic,
+                                  );
                                 },
                                 borderRadius: BorderRadius.circular(64.0),
                                 child: Tooltip(
