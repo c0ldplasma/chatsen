@@ -35,6 +35,17 @@ class AppLocalizationsHr extends AppLocalizations {
   String get expiresNever => 'Nikada ne ističe';
 
   @override
+  String get loginExpired => 'Login expired';
+
+  @override
+  String loginExpiredDescription(String login) {
+    return 'Twitch rejected the login for $login. Chat stays disconnected until you sign in again.';
+  }
+
+  @override
+  String get signInAgain => 'Sign in';
+
+  @override
   String expiresIn(String time) {
     return 'Ističe za $time';
   }

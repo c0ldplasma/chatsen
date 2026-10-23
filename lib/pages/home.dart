@@ -15,8 +15,11 @@ import '../modal/chatsen.dart';
 import '../tmi/channel/channel.dart';
 import '../tmi/client/client.dart';
 import '../tmi/client/client_channels.dart';
+import '../tmi/connection/connection.dart';
+import '../tmi/connection/connection_state.dart' as tmi;
 import '../widgets/channel_view.dart';
 import '../widgets/home_tab.dart';
+import '../widgets/login_expired_banner.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MyAppBar({super.key});
@@ -186,15 +189,36 @@ class _HomePageState extends State<HomePage>
                     );
                   }),
                 ),
-                body: TabBarView(
-                  controller: tabController,
-                  children: [
-                    const HomeTab(),
-                    for (final channel in state)
-                      ChannelView(
-                        channel: channel,
-                      ),
-                  ],
+                body: BlocBuilder<Connection, tmi.ConnectionState>(
+                  bloc: context.read<Client>().receiver,
+                  builder: (context, connectionState) {
+                    // The banner claims the status-bar inset itself, so drop the
+                    // top inset for everything below it — otherwise the home
+                    // tab's large app bar and the chat view would each add it a
+                    // second time and leave a gap under the banner.
+                    final loginExpired = connectionState is tmi.ConnectionInvalidCredentials;
+                    return Column(
+                      children: [
+                        const LoginExpiredBanner(),
+                        Expanded(
+                          child: MediaQuery.removePadding(
+                            context: context,
+                            removeTop: loginExpired,
+                            child: TabBarView(
+                              controller: tabController,
+                              children: [
+                                const HomeTab(),
+                                for (final channel in state)
+                                  ChannelView(
+                                    channel: channel,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             );

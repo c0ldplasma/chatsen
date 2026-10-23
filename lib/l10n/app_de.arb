@@ -11,6 +11,14 @@
   "privacyPolicy": "Datenschutzrichtlinie",
   "settings": "Einstellungen",
   "expiresNever": "Läuft nie ab",
+  "loginExpired": "Login abgelaufen",
+  "loginExpiredDescription": "Twitch hat den Login für {login} abgelehnt. Der Chat bleibt getrennt, bis du dich neu anmeldest.",
+  "@loginExpiredDescription": {
+    "placeholders": {
+      "login": {"type": "String"}
+    }
+  },
+  "signInAgain": "Anmelden",
   "expiresIn": "Läuft ab in {time}",
   "@expiresIn": {
     "placeholders": {
