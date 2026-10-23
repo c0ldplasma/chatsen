@@ -71,22 +71,12 @@
   "system": "Συστήματος",
   "appearance": "Εμφάνιση",
   "highContrast": "Υψηλή αντίθεση",
-  "playStream": "Αναπαραγωγή ροής",
-  "stopStream": "Διακοπή ροής",
   "customCommand": "Προσαρμοσμένη εντολή",
   "customCommands": "Προσαρμοσμένες εντολές",
   "newCustomCommand": "Νέα προσαρμοσμένη εντολή",
   "commandTrigger": "Συντόμευση",
   "command": "Εντολή",
   "save": "Αποθήκευση",
-  "browserStreamSettings": "Ρυθμίσεις Περιηγητή/Ροής",
-  "addPage": "Προσθήκη σελίδας",
-  "channelStream": "Ροή {channel}",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Άνοιγμα στον περιηγητή",
   "messageAppearance": "Εμφάνιση μηνύματος",
   "showTimestamps": "Εμφάνιση χρονικών σημείων",

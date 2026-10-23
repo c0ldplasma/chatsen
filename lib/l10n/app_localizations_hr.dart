@@ -212,12 +212,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get highContrast => 'Visoki kontrast';
 
   @override
-  String get playStream => 'Reproduciraj stream';
-
-  @override
-  String get stopStream => 'Zaustavi stream';
-
-  @override
   String get customCommand => 'Prilagođena naredba';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get save => 'Spremi';
-
-  @override
-  String get browserStreamSettings => 'Browser/Stream Settings';
-
-  @override
-  String get addPage => 'Add page';
-
-  @override
-  String channelStream(String channel) {
-    return '$channel\'s stream';
-  }
 
   @override
   String get openInBrowser => 'Open in browser';

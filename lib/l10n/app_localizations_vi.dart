@@ -212,12 +212,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get highContrast => 'Độ tương phản cao';
 
   @override
-  String get playStream => 'Phát';
-
-  @override
-  String get stopStream => 'Ngừng phát';
-
-  @override
   String get customCommand => 'Lệnh tùy chỉnh';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get save => 'Lưu';
-
-  @override
-  String get browserStreamSettings => 'Cài đặt Trình duyệt/Stream';
-
-  @override
-  String get addPage => 'Thêm trang';
-
-  @override
-  String channelStream(String channel) {
-    return 'Kênh stream $channel';
-  }
 
   @override
   String get openInBrowser => 'Mở trong trình duyệt';

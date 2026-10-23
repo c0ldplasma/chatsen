@@ -212,12 +212,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get highContrast => 'Vysoký kontrast';
 
   @override
-  String get playStream => 'Spustit vysílání';
-
-  @override
-  String get stopStream => 'Zastavit vysílání';
-
-  @override
   String get customCommand => 'Vlastní příkaz';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get save => 'Uložit';
-
-  @override
-  String get browserStreamSettings => 'Prohlížeč/Nastavení Vysílání';
-
-  @override
-  String get addPage => 'Přidat stranu';
-
-  @override
-  String channelStream(String channel) {
-    return 'vysílání uživatele $channel';
-  }
 
   @override
   String get openInBrowser => 'Otevřít v prohlížeči';

@@ -71,22 +71,12 @@
   "system": "Системная",
   "appearance": "Внешний вид",
   "highContrast": "Высокая контрастность",
-  "playStream": "Воспроизвести трансляцию",
-  "stopStream": "Остановить трансляцию",
   "customCommand": "Собственная команда",
   "customCommands": "Собственные команды",
   "newCustomCommand": "Новая собственная команда",
   "commandTrigger": "Замена текста",
   "command": "Команда",
   "save": "Сохранить",
-  "browserStreamSettings": "Настройки браузера/трансляции",
-  "addPage": "Добавить страницу",
-  "channelStream": "трансляция {channel}",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Открыть в браузере",
   "messageAppearance": "Внешний вид сообщения",
   "showTimestamps": "Показывать временные отметки",

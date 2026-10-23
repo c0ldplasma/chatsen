@@ -71,22 +71,12 @@
   "system": "Hệ thống",
   "appearance": "Giao diện",
   "highContrast": "Độ tương phản cao",
-  "playStream": "Phát",
-  "stopStream": "Ngừng phát",
   "customCommand": "Lệnh tùy chỉnh",
   "customCommands": "Lệnh tùy chỉnh",
   "newCustomCommand": "Tạo lệnh tùy chỉnh mới",
   "commandTrigger": "Từ khóa Kích hoạt",
   "command": "Lệnh",
   "save": "Lưu",
-  "browserStreamSettings": "Cài đặt Trình duyệt/Stream",
-  "addPage": "Thêm trang",
-  "channelStream": "Kênh stream {channel}",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Mở trong trình duyệt",
   "messageAppearance": "Giao diện tin nhắn",
   "showTimestamps": "Hiển thị thời gian",

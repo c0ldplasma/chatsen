@@ -212,12 +212,6 @@ class AppLocalizationsCa extends AppLocalizations {
   String get highContrast => 'Alt contrast';
 
   @override
-  String get playStream => 'Reproduir Stream';
-
-  @override
-  String get stopStream => 'Atura stream';
-
-  @override
   String get customCommand => 'Comanda personalitzada';
 
   @override
@@ -234,18 +228,6 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get save => 'Desa';
-
-  @override
-  String get browserStreamSettings =>
-      'Configuració del navegador/Retransmissió';
-
-  @override
-  String get addPage => 'Afegir una pàgina';
-
-  @override
-  String channelStream(String channel) {
-    return 'Retransmissió de $channel';
-  }
 
   @override
   String get openInBrowser => 'Obre al navegador';

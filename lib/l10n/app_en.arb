@@ -134,24 +134,12 @@
   "system": "System",
   "appearance": "Appearance",
   "highContrast": "High contrast",
-  "playStream": "Play stream",
-  "stopStream": "Stop stream",
   "customCommand": "Custom command",
   "customCommands": "Custom commands",
   "newCustomCommand": "New custom command",
   "commandTrigger": "Trigger",
   "command": "Command",
   "save": "Save",
-  "browserStreamSettings": "Browser/Stream Settings",
-  "addPage": "Add page",
-  "channelStream": "{channel}'s stream",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {
-        "type": "String"
-      }
-    }
-  },
   "openInBrowser": "Open in browser",
   "messageAppearance": "Message appearance",
   "showTimestamps": "Show timestamps",

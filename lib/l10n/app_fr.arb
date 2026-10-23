@@ -71,22 +71,12 @@
   "system": "Système",
   "appearance": "Apparence",
   "highContrast": "Contraste élevé",
-  "playStream": "Visionner le stream",
-  "stopStream": "Arrêter le stream",
   "customCommand": "Commande personnalisée",
   "customCommands": "Commandes personnalisées",
   "newCustomCommand": "New custom command",
   "commandTrigger": "Déclencheur",
   "command": "Commande",
   "save": "Sauvegarder",
-  "browserStreamSettings": "Browser/Stream Settings",
-  "addPage": "Add page",
-  "channelStream": "Stream de {channel}",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Ouvrir dans le navigateur",
   "messageAppearance": "Apparence des messages",
   "showTimestamps": "Afficher l'heure des messages",

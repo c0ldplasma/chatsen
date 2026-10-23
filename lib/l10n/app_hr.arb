@@ -71,22 +71,12 @@
   "system": "Tema sustava",
   "appearance": "Izgled",
   "highContrast": "Visoki kontrast",
-  "playStream": "Reproduciraj stream",
-  "stopStream": "Zaustavi stream",
   "customCommand": "Prilagođena naredba",
   "customCommands": "Prilagođene naredbe",
   "newCustomCommand": "New custom command",
   "commandTrigger": "Okidač",
   "command": "Naredba",
   "save": "Spremi",
-  "browserStreamSettings": "Browser/Stream Settings",
-  "addPage": "Add page",
-  "channelStream": "{channel}'s stream",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Open in browser",
   "messageAppearance": "Message appearance",
   "showTimestamps": "Show timestamps",

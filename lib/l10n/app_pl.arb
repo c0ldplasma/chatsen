@@ -71,22 +71,12 @@
   "system": "Systemowy",
   "appearance": "Wygląd",
   "highContrast": "Wysoki kontrast",
-  "playStream": "Wznów strumień",
-  "stopStream": "Zatrzymaj strumień",
   "customCommand": "Niestandardowe polecenie",
   "customCommands": "Niestandardowe polecenia",
   "newCustomCommand": "Nowe niestandardowe polecenie",
   "commandTrigger": "Wyzwalacz",
   "command": "Polecenie",
   "save": "Zapisz",
-  "browserStreamSettings": "Ustawienia Wyszukiwarki/Strumienia",
-  "addPage": "Dodaj stronę",
-  "channelStream": "Strumień {channel}",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Otwórz w przeglądarce",
   "messageAppearance": "Wygląd wiadomości",
   "showTimestamps": "Pokaż znaczniki czasu",

@@ -212,12 +212,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get highContrast => 'ハイコントラスト';
 
   @override
-  String get playStream => 'ストリームを再生';
-
-  @override
-  String get stopStream => 'ストリームを停止';
-
-  @override
   String get customCommand => 'カスタムコマンド';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get save => '保存';
-
-  @override
-  String get browserStreamSettings => 'ブラウザ/ストリーム設定';
-
-  @override
-  String get addPage => 'ページを追加';
-
-  @override
-  String channelStream(String channel) {
-    return '$channelのストリーム';
-  }
 
   @override
   String get openInBrowser => 'ブラウザで開く';

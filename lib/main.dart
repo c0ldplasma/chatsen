@@ -3,7 +3,6 @@ import 'package:chatsen/data/filesharing/upload_queue_cubit.dart';
 import 'package:chatsen/data/notifications_cubit.dart';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:chatsen/data/browser/browser_state.dart';
 import 'package:chatsen/data/custom_command.dart';
 import 'package:chatsen/data/message_trigger.dart';
 import 'package:chatsen/data/settings/application_appearance.dart';
@@ -15,6 +14,7 @@ import 'package:chatsen/data/settings/mention_user.dart';
 import 'package:chatsen/data/settings/message_appearance.dart';
 import 'package:chatsen/data/user_trigger.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +38,8 @@ Future<void> main() async {
   }
 
   await WakelockPlus.enable();
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   await Hive.initFlutter();
 
@@ -114,7 +116,6 @@ Future<void> main() async {
             cacheBox: emoteBadgeCacheBox,
           ),
         ),
-        Provider<BrowserState>(create: (context) => BrowserState()),
         Provider<NotificationsCubit>(create: (context) => NotificationsCubit()),
         // Above the channel views on purpose: an upload must survive switching
         // tabs and must never be awaited by the composer.

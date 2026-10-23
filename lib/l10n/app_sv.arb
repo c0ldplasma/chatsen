@@ -71,22 +71,12 @@
   "system": "System",
   "appearance": "Utseende",
   "highContrast": "Hög kontrast",
-  "playStream": "Spela ström",
-  "stopStream": "Sluta ström",
   "customCommand": "Anpassat kommando",
   "customCommands": "Anpassade kommandon",
   "newCustomCommand": "Nytt anpassat kommando",
   "commandTrigger": "Utlösare",
   "command": "Kommandot",
   "save": "Spara",
-  "browserStreamSettings": "Webbläsare/ströminställningar",
-  "addPage": "Skapa sida",
-  "channelStream": "{channel}'s ström",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Öppna i webbläsare",
   "messageAppearance": "Meddelandets utseende",
   "showTimestamps": "Visa tidsstämpel",
