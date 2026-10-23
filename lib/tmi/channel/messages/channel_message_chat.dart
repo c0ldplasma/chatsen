@@ -7,7 +7,6 @@ import 'package:chatsen/data/inline_url.dart';
 import 'package:chatsen/tmi/channel/messages/channel_message_user.dart';
 import 'package:chatsen/tmi/channel/messages/embeds/file_embed.dart';
 import 'package:chatsen/tmi/channel/messages/embeds/image_embed.dart';
-import 'package:chatsen/tmi/channel/messages/embeds/video_embed.dart';
 import 'package:chatsen/tmi/user.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +65,6 @@ class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, Channel
   // message (or, for the url regexes, per word) during history deserialization.
   static final RegExp _actionRegex = RegExp('ACTION .*');
   static final RegExp _imageRegex = RegExp(r'\.(png|apng|gif|webp|jpg|jpeg)$');
-  static final RegExp _videoRegex = RegExp(r'\.(webm|mp4)$');
   static final TwitchProvider _twitchProvider = TwitchProvider();
 
   irc.Message message;
@@ -209,8 +207,6 @@ class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, Channel
         splits.add(InlineUrl(url: '$uri'));
         if (_imageRegex.hasMatch('${uri.removeFragment()}')) {
           embeds.add(ImageEmbed(url: '$uri'));
-        } else if (_videoRegex.hasMatch('${uri.removeFragment()}')) {
-          embeds.add(VideoEmbed(url: '$uri'));
         } else if (uri.host == 'anonfiles.com') {
           try {
             Anonfiles.getFileInfo(uri.path.split('/')[1]).then((fileInfo) {

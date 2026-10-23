@@ -71,22 +71,12 @@
   "system": "시스템 설정",
   "appearance": "배경",
   "highContrast": "고대비",
-  "playStream": "스트림 재생",
-  "stopStream": "스트림 중지",
   "customCommand": "커스텀 커맨드",
   "customCommands": "커스텀 커맨드",
   "newCustomCommand": "새로운 커스텀 커맨드",
   "commandTrigger": "트리거",
   "command": "커맨드",
   "save": "세이브",
-  "browserStreamSettings": "브라우저/스트림 설정",
-  "addPage": "페이지 추가",
-  "channelStream": "{channel}의 스트림",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "브라우저에서 열기",
   "messageAppearance": "메시지 외관",
   "showTimestamps": "타임 스탬프 표시",

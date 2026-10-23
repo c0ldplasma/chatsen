@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:chatsen/modal/channel.dart';
-import 'package:chatsen/widgets/browser/stream_container.dart';
 import 'package:chatsen/widgets/cookies_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -136,93 +135,91 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  Widget build(BuildContext context) => StreamContainer(
-        child: BlocBuilder<ClientChannels, List<Channel>>(
-          bloc: context.read<Client>().channels,
-          builder: (context, state) {
-            final tabController = _ensureController(state);
-            return Provider<HomeTabSwitcher>.value(
-              value: _switcher,
-              child: Scaffold(
-                backgroundColor: Platform.isWindows ? Colors.transparent : null,
-                appBar: Platform.isWindows ? const MyAppBar() : null,
-                extendBody: true,
-                extendBodyBehindAppBar: true,
-                bottomNavigationBar: DarkBar(
-                  child: Builder(builder: (context) {
-                    final fg = DarkBar.foregroundColor(context);
-                    return TabBar(
-                      controller: tabController,
-                      isScrollable: true,
-                      tabAlignment: TabAlignment.start,
-                      labelColor: fg,
-                      unselectedLabelColor: fg.withOpacity(0.6),
-                      indicatorColor: fg,
-                      dividerColor: Colors.transparent,
-                      tabs: [
+  Widget build(BuildContext context) => BlocBuilder<ClientChannels, List<Channel>>(
+        bloc: context.read<Client>().channels,
+        builder: (context, state) {
+          final tabController = _ensureController(state);
+          return Provider<HomeTabSwitcher>.value(
+            value: _switcher,
+            child: Scaffold(
+              backgroundColor: Platform.isWindows ? Colors.transparent : null,
+              appBar: Platform.isWindows ? const MyAppBar() : null,
+              extendBody: true,
+              extendBodyBehindAppBar: true,
+              bottomNavigationBar: DarkBar(
+                child: Builder(builder: (context) {
+                  final fg = DarkBar.foregroundColor(context);
+                  return TabBar(
+                    controller: tabController,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    labelColor: fg,
+                    unselectedLabelColor: fg.withOpacity(0.6),
+                    indicatorColor: fg,
+                    dividerColor: Colors.transparent,
+                    tabs: [
+                      GestureDetector(
+                        onLongPress: () {
+                          Modal.show(
+                            context: context,
+                            child: const ChatsenModal(),
+                          );
+                        },
+                        child: const SizedBox(
+                          height: 48.0,
+                          child: Icon(Icons.home_outlined),
+                        ),
+                      ),
+                      for (final channel in state)
                         GestureDetector(
                           onLongPress: () {
                             Modal.show(
                               context: context,
-                              child: const ChatsenModal(),
+                              child: ChannelModal(channel: channel),
                             );
                           },
-                          child: const SizedBox(
+                          child: SizedBox(
                             height: 48.0,
-                            child: Icon(Icons.home_outlined),
+                            child: Center(child: Text(channel.name)),
                           ),
                         ),
-                        for (final channel in state)
-                          GestureDetector(
-                            onLongPress: () {
-                              Modal.show(
-                                context: context,
-                                child: ChannelModal(channel: channel),
-                              );
-                            },
-                            child: SizedBox(
-                              height: 48.0,
-                              child: Center(child: Text(channel.name)),
-                            ),
-                          ),
-                      ],
-                    );
-                  }),
-                ),
-                body: BlocBuilder<Connection, tmi.ConnectionState>(
-                  bloc: context.read<Client>().receiver,
-                  builder: (context, connectionState) {
-                    // The banner claims the status-bar inset itself, so drop the
-                    // top inset for everything below it — otherwise the home
-                    // tab's large app bar and the chat view would each add it a
-                    // second time and leave a gap under the banner.
-                    final loginExpired = connectionState is tmi.ConnectionInvalidCredentials;
-                    return Column(
-                      children: [
-                        const LoginExpiredBanner(),
-                        Expanded(
-                          child: MediaQuery.removePadding(
-                            context: context,
-                            removeTop: loginExpired,
-                            child: TabBarView(
-                              controller: tabController,
-                              children: [
-                                const HomeTab(),
-                                for (final channel in state)
-                                  ChannelView(
-                                    channel: channel,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                    ],
+                  );
+                }),
               ),
-            );
-          },
-        ),
+              body: BlocBuilder<Connection, tmi.ConnectionState>(
+                bloc: context.read<Client>().receiver,
+                builder: (context, connectionState) {
+                  // The banner claims the status-bar inset itself, so drop the
+                  // top inset for everything below it — otherwise the home
+                  // tab's large app bar and the chat view would each add it a
+                  // second time and leave a gap under the banner.
+                  final loginExpired = connectionState is tmi.ConnectionInvalidCredentials;
+                  return Column(
+                    children: [
+                      const LoginExpiredBanner(),
+                      Expanded(
+                        child: MediaQuery.removePadding(
+                          context: context,
+                          removeTop: loginExpired,
+                          child: TabBarView(
+                            controller: tabController,
+                            children: [
+                              const HomeTab(),
+                              for (final channel in state)
+                                ChannelView(
+                                  channel: channel,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          );
+        },
       );
 }

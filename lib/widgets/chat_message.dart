@@ -336,7 +336,6 @@ class ChatMessage extends StatelessWidget {
                 if (state.isNotEmpty) SizedBox(height: 8.0 * messageAppearance.scale),
                 for (final embed in state) ...[
                   if (embed is ImageEmbed) EmbeddedImage(embed: embed, scale: messageAppearance.scale),
-                  // if (embed is VideoEmbed) EmbeddedVideo(embed: embed, scale: messageAppearance.scale),
                   if (embed is FileEmbed) EmbeddedFile(embed: embed, scale: messageAppearance.scale),
                   SizedBox(height: 8.0 * messageAppearance.scale),
                 ],

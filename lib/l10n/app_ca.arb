@@ -71,22 +71,12 @@
   "system": "Sistema",
   "appearance": "Aparença",
   "highContrast": "Alt contrast",
-  "playStream": "Reproduir Stream",
-  "stopStream": "Atura stream",
   "customCommand": "Comanda personalitzada",
   "customCommands": "Comandes personalitzades",
   "newCustomCommand": "Nova comanda personalitzada",
   "commandTrigger": "Activador",
   "command": "Comanda",
   "save": "Desa",
-  "browserStreamSettings": "Configuració del navegador/Retransmissió",
-  "addPage": "Afegir una pàgina",
-  "channelStream": "Retransmissió de {channel}",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Obre al navegador",
   "messageAppearance": "Aparença del missatge",
   "showTimestamps": "Mostrar segells de temps",

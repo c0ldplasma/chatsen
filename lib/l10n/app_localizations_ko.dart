@@ -212,12 +212,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get highContrast => '고대비';
 
   @override
-  String get playStream => '스트림 재생';
-
-  @override
-  String get stopStream => '스트림 중지';
-
-  @override
   String get customCommand => '커스텀 커맨드';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get save => '세이브';
-
-  @override
-  String get browserStreamSettings => '브라우저/스트림 설정';
-
-  @override
-  String get addPage => '페이지 추가';
-
-  @override
-  String channelStream(String channel) {
-    return '$channel의 스트림';
-  }
 
   @override
   String get openInBrowser => '브라우저에서 열기';

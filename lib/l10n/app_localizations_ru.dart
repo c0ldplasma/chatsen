@@ -212,12 +212,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get highContrast => 'Высокая контрастность';
 
   @override
-  String get playStream => 'Воспроизвести трансляцию';
-
-  @override
-  String get stopStream => 'Остановить трансляцию';
-
-  @override
   String get customCommand => 'Собственная команда';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get save => 'Сохранить';
-
-  @override
-  String get browserStreamSettings => 'Настройки браузера/трансляции';
-
-  @override
-  String get addPage => 'Добавить страницу';
-
-  @override
-  String channelStream(String channel) {
-    return 'трансляция $channel';
-  }
 
   @override
   String get openInBrowser => 'Открыть в браузере';

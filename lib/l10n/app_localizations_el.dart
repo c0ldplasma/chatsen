@@ -212,12 +212,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get highContrast => 'Υψηλή αντίθεση';
 
   @override
-  String get playStream => 'Αναπαραγωγή ροής';
-
-  @override
-  String get stopStream => 'Διακοπή ροής';
-
-  @override
   String get customCommand => 'Προσαρμοσμένη εντολή';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get save => 'Αποθήκευση';
-
-  @override
-  String get browserStreamSettings => 'Ρυθμίσεις Περιηγητή/Ροής';
-
-  @override
-  String get addPage => 'Προσθήκη σελίδας';
-
-  @override
-  String channelStream(String channel) {
-    return 'Ροή $channel';
-  }
 
   @override
   String get openInBrowser => 'Άνοιγμα στον περιηγητή';

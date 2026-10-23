@@ -71,22 +71,12 @@
   "system": "Sistema",
   "appearance": "Aparência",
   "highContrast": "Alto contraste",
-  "playStream": "Reproduzir transmissão",
-  "stopStream": "Parar transmissão",
   "customCommand": "Comando personalizado",
   "customCommands": "Comandos personalizados",
   "newCustomCommand": "Novo comando personalizado",
   "commandTrigger": "Gatilho",
   "command": "Comando",
   "save": "Salvar",
-  "browserStreamSettings": "Configurações de Navegador/Transmissão",
-  "addPage": "Adicionar página",
-  "channelStream": "Transmissão de {channel}",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Abrir no navegador",
   "messageAppearance": "Aparência das mensagens",
   "showTimestamps": "Mostrar timestamps",

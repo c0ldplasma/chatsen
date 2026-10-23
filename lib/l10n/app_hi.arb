@@ -71,22 +71,12 @@
   "system": "सिस्टम",
   "appearance": "स्वरूप",
   "highContrast": "जादा कॉन्ट्रास्ट",
-  "playStream": "Play stream",
-  "stopStream": "स्ट्रीम रोक दें?",
   "customCommand": "कस्टम कमांड्स",
   "customCommands": "कस्टम कमांड्स",
   "newCustomCommand": "New custom command",
   "commandTrigger": "Trigger",
   "command": "आदेश:",
   "save": "सेव करें",
-  "browserStreamSettings": "Browser/Stream Settings",
-  "addPage": "Add page",
-  "channelStream": "{channel}'s stream",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "Open in browser",
   "messageAppearance": "Message appearance",
   "showTimestamps": "Show timestamps",

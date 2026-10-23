@@ -212,12 +212,6 @@ class AppLocalizationsSv extends AppLocalizations {
   String get highContrast => 'Hög kontrast';
 
   @override
-  String get playStream => 'Spela ström';
-
-  @override
-  String get stopStream => 'Sluta ström';
-
-  @override
   String get customCommand => 'Anpassat kommando';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get save => 'Spara';
-
-  @override
-  String get browserStreamSettings => 'Webbläsare/ströminställningar';
-
-  @override
-  String get addPage => 'Skapa sida';
-
-  @override
-  String channelStream(String channel) {
-    return '$channel\'s ström';
-  }
 
   @override
   String get openInBrowser => 'Öppna i webbläsare';

@@ -212,12 +212,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get highContrast => 'High contrast';
 
   @override
-  String get playStream => 'Play stream';
-
-  @override
-  String get stopStream => 'Stop stream';
-
-  @override
   String get customCommand => 'Custom command';
 
   @override
@@ -234,17 +228,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get save => 'Save';
-
-  @override
-  String get browserStreamSettings => 'Browser/Stream Settings';
-
-  @override
-  String get addPage => 'Add page';
-
-  @override
-  String channelStream(String channel) {
-    return '$channel\'s stream';
-  }
 
   @override
   String get openInBrowser => 'Open in browser';

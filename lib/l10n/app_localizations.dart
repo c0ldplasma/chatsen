@@ -484,18 +484,6 @@ abstract class AppLocalizations {
   /// **'High contrast'**
   String get highContrast;
 
-  /// No description provided for @playStream.
-  ///
-  /// In en, this message translates to:
-  /// **'Play stream'**
-  String get playStream;
-
-  /// No description provided for @stopStream.
-  ///
-  /// In en, this message translates to:
-  /// **'Stop stream'**
-  String get stopStream;
-
   /// No description provided for @customCommand.
   ///
   /// In en, this message translates to:
@@ -531,24 +519,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get save;
-
-  /// No description provided for @browserStreamSettings.
-  ///
-  /// In en, this message translates to:
-  /// **'Browser/Stream Settings'**
-  String get browserStreamSettings;
-
-  /// No description provided for @addPage.
-  ///
-  /// In en, this message translates to:
-  /// **'Add page'**
-  String get addPage;
-
-  /// No description provided for @channelStream.
-  ///
-  /// In en, this message translates to:
-  /// **'{channel}\'s stream'**
-  String channelStream(String channel);
 
   /// No description provided for @openInBrowser.
   ///

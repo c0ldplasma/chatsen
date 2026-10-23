@@ -71,22 +71,12 @@
   "system": "システム",
   "appearance": "外観",
   "highContrast": "ハイコントラスト",
-  "playStream": "ストリームを再生",
-  "stopStream": "ストリームを停止",
   "customCommand": "カスタムコマンド",
   "customCommands": "カスタムコマンド",
   "newCustomCommand": "新しいカスタムコマンド",
   "commandTrigger": "トリガー",
   "command": "コマンド",
   "save": "保存",
-  "browserStreamSettings": "ブラウザ/ストリーム設定",
-  "addPage": "ページを追加",
-  "channelStream": "{channel}のストリーム",
-  "@channelStream": {
-    "placeholders": {
-      "channel": {"type": "String"}
-    }
-  },
   "openInBrowser": "ブラウザで開く",
   "messageAppearance": "メッセージの外観",
   "showTimestamps": "タイムスタンプを表示",
