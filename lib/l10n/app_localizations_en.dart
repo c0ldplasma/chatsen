@@ -46,6 +46,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInAgain => 'Sign in';
 
   @override
+  String uploadingTo(String host) {
+    return 'Uploading to $host';
+  }
+
+  @override
+  String get uploadProcessing => 'Processing…';
+
+  @override
+  String get uploadFailed => 'Upload failed';
+
+  @override
+  String get uploadDone => 'Uploaded';
+
+  @override
+  String get uploadRetry => 'Retry';
+
+  @override
+  String get uploadDismiss => 'Dismiss';
+
+  @override
+  String get uploadCancel => 'Cancel upload';
+
+  @override
+  String uploadRetryingWith(String host) {
+    return 'Retrying with $host…';
+  }
+
+  @override
   String expiresIn(String time) {
     return 'Expires in $time';
   }

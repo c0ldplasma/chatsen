@@ -27,6 +27,28 @@
     }
   },
   "signInAgain": "Sign in",
+  "uploadingTo": "Uploading to {host}",
+  "@uploadingTo": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadProcessing": "Processing\u2026",
+  "uploadFailed": "Upload failed",
+  "uploadDone": "Uploaded",
+  "uploadRetry": "Retry",
+  "uploadDismiss": "Dismiss",
+  "uploadCancel": "Cancel upload",
+  "uploadRetryingWith": "Retrying with {host}\u2026",
+  "@uploadRetryingWith": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "expiresIn": "Expires in {time}",
   "@expiresIn": {
     "placeholders": {
