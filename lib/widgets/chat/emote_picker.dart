@@ -262,7 +262,7 @@ class _EmotePickerState extends State<EmotePicker> {
                     ),
                   ),
                   Surface(
-                    type: SurfaceType.surfaceVariant,
+                    type: SurfaceType.background,
                     child: SizedBox(
                       height: 48.0,
                       child: ListView(
@@ -272,40 +272,49 @@ class _EmotePickerState extends State<EmotePicker> {
                           for (final category in groups.keys)
                             Padding(
                               padding: const EdgeInsets.all(4.0),
-                              child: Surface(
-                                type: SurfaceType.surface,
-                                onTap: () async {
-                                  // Null when search hides the section.
-                                  final context = groupKeys[category]?.currentContext;
-                                  if (context == null) return;
-                                  // Scroll straight to where the section starts. The viewport lays
-                                  // out every section, so this is known even for sections far off
-                                  // screen; no need to detour via the bottom first. Read it from
-                                  // the section's top-level sliver rather than revealing its
-                                  // pinned header, whose reported position is wrong while it is
-                                  // pinned (tapping the current section scrolled to the end).
-                                  RenderObject? section = context.findRenderObject();
-                                  while (section != null && section.parent is! RenderViewportBase) {
-                                    section = section.parent;
-                                  }
-                                  if (section is! RenderSliver) return;
-                                  final position = scrollController.position;
-                                  final offset = section.constraints.precedingScrollExtent.clamp(position.minScrollExtent, position.maxScrollExtent);
-                                  await position.animateTo(
-                                    offset,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOutCubic,
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(64.0),
-                                child: Tooltip(
-                                  message: category,
-                                  child: AspectRatio(
-                                    aspectRatio: 1 / 1,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Center(
-                                        child: icons[category] ?? providerLogo(context, category) ?? firstEmoteIcon(groups[category]!),
+                              // Thin outline so the circles stand out against the bar, which
+                              // now uses the same background as the rest of the picker.
+                              child: DecoratedBox(
+                                position: DecorationPosition.foreground,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                                ),
+                                child: Surface(
+                                  type: SurfaceType.surface,
+                                  onTap: () async {
+                                    // Null when search hides the section.
+                                    final context = groupKeys[category]?.currentContext;
+                                    if (context == null) return;
+                                    // Scroll straight to where the section starts. The viewport lays
+                                    // out every section, so this is known even for sections far off
+                                    // screen; no need to detour via the bottom first. Read it from
+                                    // the section's top-level sliver rather than revealing its
+                                    // pinned header, whose reported position is wrong while it is
+                                    // pinned (tapping the current section scrolled to the end).
+                                    RenderObject? section = context.findRenderObject();
+                                    while (section != null && section.parent is! RenderViewportBase) {
+                                      section = section.parent;
+                                    }
+                                    if (section is! RenderSliver) return;
+                                    final position = scrollController.position;
+                                    final offset = section.constraints.precedingScrollExtent.clamp(position.minScrollExtent, position.maxScrollExtent);
+                                    await position.animateTo(
+                                      offset,
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeOutCubic,
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(64.0),
+                                  child: Tooltip(
+                                    message: category,
+                                    child: AspectRatio(
+                                      aspectRatio: 1 / 1,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(
+                                          child: icons[category] ?? providerLogo(context, category) ?? firstEmoteIcon(groups[category]!),
+                                        ),
                                       ),
                                     ),
                                   ),
