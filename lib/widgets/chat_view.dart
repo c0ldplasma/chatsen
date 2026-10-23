@@ -34,6 +34,7 @@ class ChatView extends StatefulWidget {
 
 class _ChatViewState extends State<ChatView> {
   TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode();
   ScrollController scrollController = ScrollController();
   List<ChannelMessage>? scrollMessages;
 
@@ -63,12 +64,14 @@ class _ChatViewState extends State<ChatView> {
     widget.channel.client.ensureRecentMessages(widget.channel);
     // Show the chrome a bit longer right after the view appears.
     WidgetsBinding.instance.addPostFrameCallback((_) => _showChrome(linger: _chromeStartupLinger));
+    searchFocusNode.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _hideChromeTimer?.cancel();
     searchController.dispose();
+    searchFocusNode.dispose();
     scrollController.dispose();
     super.dispose();
   }
@@ -81,9 +84,14 @@ class _ChatViewState extends State<ChatView> {
           bloc: widget.channel.channelMessages,
           buildWhen: (state1, state2) => scrollMessages == null,
           builder: (context, state) {
-            final chromeShown = scrollMessages != null || _chromeVisible;
+            final searching = searchController.text.isNotEmpty;
+            // Never fade out the search bar while it's in use, or the user can't
+            // tell why the chat is filtered.
+            final chromeShown = scrollMessages != null || _chromeVisible || searching || searchFocusNode.hasFocus;
             var messages = (scrollMessages ?? state).reversed;
-            if (scrollMessages != null && searchController.text.isNotEmpty) messages = messages.where((element) => (element is ChannelMessageChat && '${(element.user.displayName ?? element.user.login)?.toLowerCase()}: ${element.body.toLowerCase()}'.contains(searchController.text.toLowerCase()))).toList();
+            // Filter both the live list and the paused snapshot. Filtering only
+            // the snapshot made the search depend on the scroll position.
+            if (searching) messages = messages.where((element) => (element is ChannelMessageChat && '${(element.user.displayName ?? element.user.login)?.toLowerCase()}: ${element.body.toLowerCase()}'.contains(searchController.text.toLowerCase()))).toList();
             if (widget.filter != null) messages = messages.where((element) => widget.filter!(element)).toList();
             return Stack(
               children: [
@@ -175,10 +183,18 @@ class _ChatViewState extends State<ChatView> {
                                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                 child: TextField(
                                   controller: searchController,
+                                  focusNode: searchFocusNode,
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
                                     hintText: AppLocalizations.of(context)!.search,
                                     isDense: true,
+                                    suffixIconConstraints: const BoxConstraints(),
+                                    suffixIcon: searching
+                                        ? GestureDetector(
+                                            onTap: () => setState(() => searchController.clear()),
+                                            child: const Icon(Icons.close_rounded, size: 20.0),
+                                          )
+                                        : null,
                                   ),
                                   onChanged: (text) => setState(() {}),
                                 ),
