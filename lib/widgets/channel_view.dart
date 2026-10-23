@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -8,15 +9,18 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
-import '../api/catbox/catbox.dart';
 import '../components/dark_bar.dart';
 import '../components/surface.dart';
 import '../components/tile.dart';
 import '../data/custom_command.dart';
+import '../data/filesharing/upload_queue_cubit.dart';
+import '../data/filesharing/upload_task.dart';
 import '../data/settings/chat_settings.dart';
 import '../tmi/channel/channel.dart';
 import '../tmi/channel/messages/channel_message_chat.dart';
+import 'chat/upload_queue_bar.dart';
 import 'chat_view.dart';
 
 import 'package:collection/collection.dart';
@@ -67,6 +71,19 @@ class ChannelViewState extends State<ChannelView> {
   bool spamming = false;
   bool emoteKeyboard = false;
   ChannelMessageChat? replyChannelMessageChat;
+  StreamSubscription<UploadTask>? _uploadSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Insert finished uploads into this channel's composer only; other tabs
+    // ignore them.
+    _uploadSubscription = context.read<UploadQueueCubit>().completed.listen((task) {
+      if (!mounted || task.channelName != widget.channel.name) return;
+      final url = task.url;
+      if (url != null) insertUploadedUrl(url);
+    });
+  }
 
   void setReplyChannelMessageChat(ChannelMessageChat? channelMessageChat) {
     setState(() {
@@ -121,8 +138,52 @@ class ChannelViewState extends State<ChannelView> {
     textEditingController.clear();
   }
 
+  /// Pick files and hand them to the global upload queue.
+  ///
+  /// Deliberately does not await the uploads: the composer stays usable, the
+  /// progress chips above it report state, and each URL is inserted when it
+  /// actually arrives. The old version awaited every upload inline, snapshotted
+  /// the text beforehand and wrote that snapshot back afterwards — which threw
+  /// away anything typed in the meantime and showed nothing while it ran.
+  Future<void> pickAndUploadFiles() async {
+    final queue = context.read<UploadQueueCubit>();
+    final picker = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: Platform.isIOS ? FileType.image : FileType.any,
+    );
+
+    for (final PlatformFile file in picker?.files ?? <PlatformFile>[]) {
+      final path = file.path;
+      if (path == null) continue;
+      unawaited(queue.uploadFile(
+        path: path,
+        filename: file.name,
+        channelName: widget.channel.name,
+      ));
+    }
+  }
+
+  /// Drop [url] where the caret is, preserving whatever has been typed since
+  /// the upload started, and leave the caret after it ready for more text.
+  void insertUploadedUrl(String url) {
+    final text = textEditingController.text;
+    final selection = textEditingController.selection;
+    final at = selection.isValid ? selection.end : text.length;
+
+    final needsLeadingSpace = at > 0 && !text.substring(0, at).endsWith(' ');
+    final insertion = '${needsLeadingSpace ? ' ' : ''}$url ';
+    final updated = text.replaceRange(selection.isValid ? selection.start : at, at, insertion);
+
+    textEditingController.value = TextEditingValue(
+      text: updated,
+      selection: TextSelection.collapsed(offset: (selection.isValid ? selection.start : at) + insertion.length),
+    );
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    _uploadSubscription?.cancel();
     textEditingController.dispose();
     textFocusNode.dispose();
     super.dispose();
@@ -231,6 +292,7 @@ class ChannelViewState extends State<ChannelView> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+                UploadQueueBar(channelName: widget.channel.name),
                 if (replyChannelMessageChat != null)
                   Surface(
                     type: SurfaceType.error,
@@ -351,18 +413,7 @@ class ChannelViewState extends State<ChannelView> {
                   child: Row(
                     children: [
                       InkWell(
-                        onTap: () async {
-                          final picker = await FilePicker.platform.pickFiles(
-                            type: Platform.isIOS ? FileType.image : FileType.any,
-                          );
-                          final splits = textEditingController.text.split(' ');
-                          for (PlatformFile file in picker?.files ?? []) {
-                            final uploadedFile = await Catbox.uploadFile(file.name, File(file.path!).readAsBytesSync());
-                            splits.add(uploadedFile.url);
-                          }
-                          splits.removeWhere((element) => element.isEmpty);
-                          if (splits.isNotEmpty) textEditingController.text = '${splits.join(' ')} ';
-                        },
+                        onTap: pickAndUploadFiles,
                         child: SizedBox(
                           width: 48.0,
                           height: 48.0,

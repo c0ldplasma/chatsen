@@ -19,6 +19,37 @@
     }
   },
   "signInAgain": "Anmelden",
+  "uploadingTo": "Upload zu {host}",
+  "@uploadingTo": {
+    "placeholders": {
+      "host": {"type": "String"}
+    }
+  },
+  "uploadProcessing": "Wird verarbeitet\u2026",
+  "uploadFailed": "Upload fehlgeschlagen",
+  "uploadDone": "Hochgeladen",
+  "uploadRetry": "Erneut versuchen",
+  "uploadDismiss": "Ausblenden",
+  "uploadCancel": "Upload abbrechen",
+  "uploadErrorOffline": "Keine Internetverbindung",
+  "uploadErrorTimeout": "{host} antwortet nicht",
+  "@uploadErrorTimeout": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorRejected": "{host} hat den Upload abgelehnt (HTTP {status})",
+  "@uploadErrorRejected": {"placeholders": {"host": {"type": "String"}, "status": {"type": "String"}}},
+  "uploadErrorBadResponse": "{host} hat unerwartet geantwortet",
+  "@uploadErrorBadResponse": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorNetwork": "Keine Verbindung zu {host}",
+  "@uploadErrorNetwork": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorUnreadableFile": "Datei konnte nicht gelesen werden",
+  "uploadErrorUnknown": "Upload zu {host} fehlgeschlagen",
+  "@uploadErrorUnknown": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorDetails": "Details",
+  "uploadRetryingWith": "Neuer Versuch mit {host}\u2026",
+  "@uploadRetryingWith": {
+    "placeholders": {
+      "host": {"type": "String"}
+    }
+  },
   "expiresIn": "Läuft ab in {time}",
   "@expiresIn": {
     "placeholders": {

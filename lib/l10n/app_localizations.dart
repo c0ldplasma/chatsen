@@ -208,6 +208,102 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signInAgain;
 
+  /// No description provided for @uploadingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading to {host}'**
+  String uploadingTo(String host);
+
+  /// No description provided for @uploadProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing…'**
+  String get uploadProcessing;
+
+  /// No description provided for @uploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed'**
+  String get uploadFailed;
+
+  /// No description provided for @uploadDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get uploadDone;
+
+  /// No description provided for @uploadRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get uploadRetry;
+
+  /// No description provided for @uploadDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get uploadDismiss;
+
+  /// No description provided for @uploadCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel upload'**
+  String get uploadCancel;
+
+  /// No description provided for @uploadErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get uploadErrorOffline;
+
+  /// No description provided for @uploadErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} is not responding'**
+  String uploadErrorTimeout(String host);
+
+  /// No description provided for @uploadErrorRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} rejected the upload (HTTP {status})'**
+  String uploadErrorRejected(String host, String status);
+
+  /// No description provided for @uploadErrorBadResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} sent an unexpected response'**
+  String uploadErrorBadResponse(String host);
+
+  /// No description provided for @uploadErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect to {host}'**
+  String uploadErrorNetwork(String host);
+
+  /// No description provided for @uploadErrorUnreadableFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the file'**
+  String get uploadErrorUnreadableFile;
+
+  /// No description provided for @uploadErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload to {host} failed'**
+  String uploadErrorUnknown(String host);
+
+  /// No description provided for @uploadErrorDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get uploadErrorDetails;
+
+  /// No description provided for @uploadRetryingWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrying with {host}…'**
+  String uploadRetryingWith(String host);
+
   /// No description provided for @expiresIn.
   ///
   /// In en, this message translates to:

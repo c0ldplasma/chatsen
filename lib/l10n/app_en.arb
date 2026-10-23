@@ -27,6 +27,41 @@
     }
   },
   "signInAgain": "Sign in",
+  "uploadingTo": "Uploading to {host}",
+  "@uploadingTo": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadProcessing": "Processing\u2026",
+  "uploadFailed": "Upload failed",
+  "uploadDone": "Uploaded",
+  "uploadRetry": "Retry",
+  "uploadDismiss": "Dismiss",
+  "uploadCancel": "Cancel upload",
+  "uploadErrorOffline": "No internet connection",
+  "uploadErrorTimeout": "{host} is not responding",
+  "@uploadErrorTimeout": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorRejected": "{host} rejected the upload (HTTP {status})",
+  "@uploadErrorRejected": {"placeholders": {"host": {"type": "String"}, "status": {"type": "String"}}},
+  "uploadErrorBadResponse": "{host} sent an unexpected response",
+  "@uploadErrorBadResponse": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorNetwork": "Couldn't connect to {host}",
+  "@uploadErrorNetwork": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorUnreadableFile": "Couldn't read the file",
+  "uploadErrorUnknown": "Upload to {host} failed",
+  "@uploadErrorUnknown": {"placeholders": {"host": {"type": "String"}}},
+  "uploadErrorDetails": "Details",
+  "uploadRetryingWith": "Retrying with {host}\u2026",
+  "@uploadRetryingWith": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "expiresIn": "Expires in {time}",
   "@expiresIn": {
     "placeholders": {

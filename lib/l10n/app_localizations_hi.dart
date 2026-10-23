@@ -46,6 +46,68 @@ class AppLocalizationsHi extends AppLocalizations {
   String get signInAgain => 'Sign in';
 
   @override
+  String uploadingTo(String host) {
+    return 'Uploading to $host';
+  }
+
+  @override
+  String get uploadProcessing => 'Processing…';
+
+  @override
+  String get uploadFailed => 'Upload failed';
+
+  @override
+  String get uploadDone => 'Uploaded';
+
+  @override
+  String get uploadRetry => 'Retry';
+
+  @override
+  String get uploadDismiss => 'Dismiss';
+
+  @override
+  String get uploadCancel => 'Cancel upload';
+
+  @override
+  String get uploadErrorOffline => 'No internet connection';
+
+  @override
+  String uploadErrorTimeout(String host) {
+    return '$host is not responding';
+  }
+
+  @override
+  String uploadErrorRejected(String host, String status) {
+    return '$host rejected the upload (HTTP $status)';
+  }
+
+  @override
+  String uploadErrorBadResponse(String host) {
+    return '$host sent an unexpected response';
+  }
+
+  @override
+  String uploadErrorNetwork(String host) {
+    return 'Couldn\'t connect to $host';
+  }
+
+  @override
+  String get uploadErrorUnreadableFile => 'Couldn\'t read the file';
+
+  @override
+  String uploadErrorUnknown(String host) {
+    return 'Upload to $host failed';
+  }
+
+  @override
+  String get uploadErrorDetails => 'Details';
+
+  @override
+  String uploadRetryingWith(String host) {
+    return 'Retrying with $host…';
+  }
+
+  @override
   String expiresIn(String time) {
     return 'Expires in $time';
   }
