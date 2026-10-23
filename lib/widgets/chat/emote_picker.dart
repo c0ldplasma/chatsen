@@ -278,14 +278,19 @@ class _EmotePickerState extends State<EmotePicker> {
                                   // Null when search hides the section.
                                   final context = groupKeys[category]?.currentContext;
                                   if (context == null) return;
-                                  // Scroll straight to the section. The viewport lays out every
-                                  // section header, so the offset is known even for sections
-                                  // far off screen; no need to detour via the bottom first.
-                                  final target = context.findRenderObject();
-                                  final viewport = target == null ? null : RenderAbstractViewport.maybeOf(target);
-                                  if (target == null || viewport == null) return;
+                                  // Scroll straight to where the section starts. The viewport lays
+                                  // out every section, so this is known even for sections far off
+                                  // screen; no need to detour via the bottom first. Read it from
+                                  // the section's top-level sliver rather than revealing its
+                                  // pinned header, whose reported position is wrong while it is
+                                  // pinned (tapping the current section scrolled to the end).
+                                  RenderObject? section = context.findRenderObject();
+                                  while (section != null && section.parent is! RenderViewportBase) {
+                                    section = section.parent;
+                                  }
+                                  if (section is! RenderSliver) return;
                                   final position = scrollController.position;
-                                  final offset = viewport.getOffsetToReveal(target, 0.0).offset.clamp(position.minScrollExtent, position.maxScrollExtent);
+                                  final offset = section.constraints.precedingScrollExtent.clamp(position.minScrollExtent, position.maxScrollExtent);
                                   await position.animateTo(
                                     offset,
                                     duration: const Duration(milliseconds: 300),
