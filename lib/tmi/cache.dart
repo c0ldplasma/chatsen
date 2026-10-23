@@ -204,6 +204,7 @@ class EmoteBadgeCache {
   static const String globalEmotesKey = 'globalEmotes';
   static const String globalBadgesKey = 'globalBadges';
   static const String globalUserBadgesKey = 'globalUserBadges';
+  static String twitchUserEmotesKey(String userId) => 'twitchUserEmotes:$userId';
 
   String _historyKey(String channelLogin) => 'history:v2:$channelLogin';
 

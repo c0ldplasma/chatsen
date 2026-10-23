@@ -159,10 +159,14 @@ class Twitch {
           'Client-Id': '${tokenData.clientId}',
         },
       );
-      final responseJson = json.decode(utf8.decode(response.bodyBytes));
-      emotes.addAll([
-        for (final data in responseJson['data']) TwitchEmote.fromJson(data),
-      ]);
+      // Skip a batch that fails rather than throwing away the emotes from
+      // every other batch.
+      if (response.statusCode == 200) {
+        final responseJson = json.decode(utf8.decode(response.bodyBytes));
+        emotes.addAll([
+          for (final data in responseJson['data']) TwitchEmote.fromJson(data),
+        ]);
+      }
       emoteSetIds.removeRange(0, emoteSetsPack.length);
     }
     return emotes;
