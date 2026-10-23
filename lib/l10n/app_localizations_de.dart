@@ -402,4 +402,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get search => 'Search';
+
+  @override
+  String get emoteMenuButton => 'Emote-Menü-Button';
+
+  @override
+  String get emoteMenuButtonGrayscale => 'Emote-Menü-Button in Graustufen';
+
+  @override
+  String get chooseEmoteMenuButton =>
+      'Tippe auf ein Emote, um es als Emote-Menü-Button zu verwenden';
+
+  @override
+  String get resetToKappa => 'Auf Kappa zurücksetzen';
+
+  @override
+  String get emoteMenuButtonDownloadFailed =>
+      'Das Emote konnte nicht heruntergeladen werden. Der Button wurde nicht geändert.';
 }

@@ -16,6 +16,7 @@ import '../../data/emote.dart';
 import '../../providers/emojis.dart';
 import '../emoji_glyph.dart';
 import '../../tmi/channel/channel.dart';
+import '../../tmi/client/client.dart';
 
 class SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String title;
@@ -50,17 +51,26 @@ enum PickerMode {
 }
 
 class EmotePicker extends StatefulWidget {
-  final Channel channel;
+  final Client client;
+  // Null outside of a chat (e.g. from settings): only global emotes then.
+  final Channel? channel;
   final String Function() getFieldInput;
   final void Function(String) setFieldInput;
   final void Function(String) insertFieldInput;
 
+  /// When set, the picker is choosing the emote menu button instead of typing:
+  /// tapping an emote calls this, and a banner offers resetting to Kappa,
+  /// which calls it with null.
+  final void Function(Emote? emote)? onPickButtonIcon;
+
   const EmotePicker({
     super.key,
-    required this.channel,
+    required this.client,
+    this.channel,
     required this.getFieldInput,
     required this.setFieldInput,
     required this.insertFieldInput,
+    this.onPickButtonIcon,
   });
 
   @override
@@ -80,9 +90,9 @@ class _EmotePickerState extends State<EmotePicker> {
     // Emotes keep loading after the picker opens (Twitch's only arrive once
     // the chat connection is up), so rebuild when any list changes.
     emoteSubscriptions = [
-      widget.channel.channelEmotes.stream.listen((_) => setState(() {})),
-      widget.channel.client.globalEmotes.stream.listen((_) => setState(() {})),
-      widget.channel.client.twitchUserEmotes.stream.listen((_) => setState(() {})),
+      if (widget.channel != null) widget.channel!.channelEmotes.stream.listen((_) => setState(() {})),
+      widget.client.globalEmotes.stream.listen((_) => setState(() {})),
+      widget.client.twitchUserEmotes.stream.listen((_) => setState(() {})),
     ];
     super.initState();
   }
@@ -99,8 +109,8 @@ class _EmotePickerState extends State<EmotePicker> {
 
   @override
   Widget build(BuildContext context) {
-    final channelEmotes = widget.channel.channelEmotes.state;
-    final globalEmotes = widget.channel.client.globalEmotes.state + widget.channel.client.twitchUserEmotes.state;
+    final channelEmotes = widget.channel?.channelEmotes.state ?? [];
+    final globalEmotes = widget.client.globalEmotes.state + widget.client.twitchUserEmotes.state;
     final allEmotes = channelEmotes + globalEmotes;
 
     final emoteGroups = <String, List<Emote>>{};
@@ -185,6 +195,19 @@ class _EmotePickerState extends State<EmotePicker> {
                       slivers: [
                         SliverList.list(
                           children: [
+                            if (widget.onPickButtonIcon != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16.0, right: 8.0, top: 8.0),
+                                child: Row(
+                                  children: [
+                                    Expanded(child: Text(AppLocalizations.of(context)!.chooseEmoteMenuButton)),
+                                    TextButton(
+                                      onPressed: () => widget.onPickButtonIcon!(null),
+                                      child: Text(AppLocalizations.of(context)!.resetToKappa),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
                               child: Surface(
@@ -240,7 +263,7 @@ class _EmotePickerState extends State<EmotePicker> {
                                     Tooltip(
                                       message: emote.name,
                                       child: InkWell(
-                                        onTap: () async => widget.insertFieldInput(emote.code ?? emote.name),
+                                        onTap: () async => widget.onPickButtonIcon != null ? widget.onPickButtonIcon!(emote) : widget.insertFieldInput(emote.code ?? emote.name),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: EmoteGlyph(

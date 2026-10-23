@@ -402,6 +402,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get search => 'Search';
+
+  @override
+  String get emoteMenuButton => 'Emote menu button';
+
+  @override
+  String get emoteMenuButtonGrayscale => 'Show emote menu button in grayscale';
+
+  @override
+  String get chooseEmoteMenuButton =>
+      'Tap an emote to use it as the emote menu button';
+
+  @override
+  String get resetToKappa => 'Reset to Kappa';
+
+  @override
+  String get emoteMenuButtonDownloadFailed =>
+      'Couldn\'t download that emote. The button wasn\'t changed.';
 }
 
 /// The translations for English, as used in Canada (`en_CA`).
