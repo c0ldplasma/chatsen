@@ -69,6 +69,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get uploadCancel => 'Upload abbrechen';
 
   @override
+  String get uploadErrorOffline => 'Keine Internetverbindung';
+
+  @override
+  String uploadErrorTimeout(String host) {
+    return '$host antwortet nicht';
+  }
+
+  @override
+  String uploadErrorRejected(String host, String status) {
+    return '$host hat den Upload abgelehnt (HTTP $status)';
+  }
+
+  @override
+  String uploadErrorBadResponse(String host) {
+    return '$host hat unerwartet geantwortet';
+  }
+
+  @override
+  String uploadErrorNetwork(String host) {
+    return 'Keine Verbindung zu $host';
+  }
+
+  @override
+  String get uploadErrorUnreadableFile => 'Datei konnte nicht gelesen werden';
+
+  @override
+  String uploadErrorUnknown(String host) {
+    return 'Upload zu $host fehlgeschlagen';
+  }
+
+  @override
+  String get uploadErrorDetails => 'Details';
+
+  @override
   String uploadRetryingWith(String host) {
     return 'Neuer Versuch mit $host…';
   }

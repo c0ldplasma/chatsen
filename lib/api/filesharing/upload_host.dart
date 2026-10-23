@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -7,13 +8,36 @@ import 'package:http/http.dart' as http;
 /// Reports how many of [total] bytes have been handed to the socket.
 typedef UploadProgress = void Function(int sent, int total);
 
+/// Why an attempt failed, coarse enough to map to a short user-facing message.
+enum UploadFailureKind {
+  /// Never got an HTTP response: DNS failure, refused, unreachable, TLS. Every
+  /// host failing this way is how "offline" is recognised.
+  network,
+
+  /// Stalled mid-upload, no answer after the upload, or the attempt cap.
+  timeout,
+
+  /// The host answered with a non-200 status.
+  http,
+
+  /// 200, but the body was not a link.
+  badResponse,
+
+  unknown,
+}
+
 /// Thrown when a host rejects an upload or does not answer in time. Carries the
 /// host name so the UI can say which one failed before the chain moves on.
 class UploadFailure implements Exception {
   final String hostName;
+  final UploadFailureKind kind;
+
+  /// Technical detail, shown only in the "details" dialog.
   final String message;
 
-  UploadFailure(this.hostName, this.message);
+  final int? statusCode;
+
+  UploadFailure(this.hostName, this.kind, this.message, {this.statusCode});
 
   @override
   String toString() => '$hostName: $message';
@@ -68,27 +92,47 @@ abstract class UploadHost {
     try {
       response = await client.send(request).timeout(timeout);
     } on TimeoutException {
-      throw UploadFailure(name, 'timed out after ${timeout.inSeconds}s');
+      throw UploadFailure(name, UploadFailureKind.timeout, 'timed out after ${timeout.inSeconds}s');
     } catch (e) {
-      throw UploadFailure(name, '$e');
+      throw UploadFailure(name, _classify(e), '$e');
     }
 
     final String body;
     try {
       body = await response.stream.bytesToString().timeout(timeout);
     } on TimeoutException {
-      throw UploadFailure(name, 'timed out reading the response');
+      throw UploadFailure(name, UploadFailureKind.timeout, 'timed out reading the response');
+    } catch (e) {
+      throw UploadFailure(name, _classify(e), '$e');
     }
 
     if (response.statusCode != 200) {
-      throw UploadFailure(name, 'HTTP ${response.statusCode}: ${_short(body)}');
+      throw UploadFailure(
+        name,
+        UploadFailureKind.http,
+        'HTTP ${response.statusCode}: ${_short(body)}',
+        statusCode: response.statusCode,
+      );
     }
 
     final url = parseResponse(body);
     if (!url.startsWith('http')) {
-      throw UploadFailure(name, 'unexpected response: ${_short(url)}');
+      throw UploadFailure(name, UploadFailureKind.badResponse, 'unexpected response: ${_short(url)}');
     }
     return url;
+  }
+
+  /// Anything that means "no usable HTTP response came back" is a network
+  /// failure. IOClient rethrows socket errors as a ClientException that
+  /// *implements* SocketException, but a connection torn down mid-flight (the
+  /// usual airplane-mode case) arrives as an HttpException that it rewraps as
+  /// a plain ClientException — so check for that too, or a dropped connection
+  /// would read as "unknown" and defeat the offline detection.
+  static UploadFailureKind _classify(Object e) {
+    if (e is SocketException || e is HandshakeException || e is HttpException || e is http.ClientException) {
+      return UploadFailureKind.network;
+    }
+    return UploadFailureKind.unknown;
   }
 
   static const int _chunkSize = 64 * 1024;

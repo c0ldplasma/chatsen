@@ -64,7 +64,7 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
       // anything large, and file pickers happily hand back 100MB videos.
       bytes = await File(path).readAsBytes();
     } catch (e) {
-      _fail(task, 'Could not read the file: $e');
+      _failUnreadable(task, e);
       return;
     }
 
@@ -77,7 +77,11 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
     task.size = bytes.length;
     task.sent = 0;
     task.status = UploadStatus.uploading;
-    task.error = null;
+    task.attempts.clear();
+    task.errorKind = null;
+    task.errorHost = null;
+    task.errorStatus = null;
+    task.errorDetail = null;
     _publish();
 
     for (var i = 0; i < UploadHosts.chain.length; i++) {
@@ -89,7 +93,7 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
       task.status = UploadStatus.uploading;
       task.lastProgressAt = DateTime.now();
       task.processingSince = null;
-      task.abortReason = null;
+      task.abortFailure = null;
       final client = http.Client();
       task.client = client;
       _publish();
@@ -125,15 +129,11 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
         if (task.status == UploadStatus.cancelled) return;
         // Prefer the watchdog's reason: closing the client to abort shows up
         // here as an opaque "connection closed" error.
-        final message = task.abortReason ?? (e is UploadFailure ? e.message : '$e');
-        final isLast = i == UploadHosts.chain.length - 1;
-        if (isLast) {
-          _fail(task, '${host.name}: $message');
-        } else {
-          // Remember why we moved on so the chip can say "Litterbox failed,
-          // trying nuuls…" instead of silently switching hosts.
-          task.previousHostError = '${host.name}: $message';
-        }
+        final failure = task.abortFailure ?? (e is UploadFailure ? e : UploadFailure(host.name, UploadFailureKind.unknown, '$e'));
+        // Recorded for every host, so the chip can say "Retrying with nuuls…"
+        // while the chain continues, and the details dialog can list them all.
+        task.attempts.add(failure);
+        if (i == UploadHosts.chain.length - 1) _failChain(task);
       } finally {
         client.close();
         if (identical(task.client, client)) task.client = null;
@@ -141,9 +141,45 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
     }
   }
 
-  void _fail(UploadTask task, String error) {
+  /// Turn the per-host failures into the one thing worth telling the user.
+  ///
+  /// Offline is decided here, at the end, rather than on the first network
+  /// error: a failed lookup for one host can just mean that host's domain is
+  /// dead, and bailing early would skip the fallback in exactly the case it
+  /// exists for. When the phone really is offline the remaining hosts fail in
+  /// well under a second, so walking them costs nothing.
+  void _failChain(UploadTask task) {
+    final attempts = task.attempts;
+    final last = attempts.last;
+
+    // A mid-upload drop shows up as a stall on the host that was carrying it,
+    // then instant network errors on the rest — so allow timeouts in the mix,
+    // but require the final word to be a network error.
+    final offline = last.kind == UploadFailureKind.network &&
+        attempts.every((f) => f.kind == UploadFailureKind.network || f.kind == UploadFailureKind.timeout);
+
+    task.errorKind = offline
+        ? UploadErrorKind.offline
+        : switch (last.kind) {
+            UploadFailureKind.network => UploadErrorKind.network,
+            UploadFailureKind.timeout => UploadErrorKind.timeout,
+            UploadFailureKind.http => UploadErrorKind.rejected,
+            UploadFailureKind.badResponse => UploadErrorKind.badResponse,
+            UploadFailureKind.unknown => UploadErrorKind.unknown,
+          };
+    task.errorHost = last.hostName;
+    task.errorStatus = last.statusCode;
+    _markFailed(task);
+  }
+
+  void _failUnreadable(UploadTask task, Object error) {
+    task.errorKind = UploadErrorKind.unreadableFile;
+    task.errorDetail = '$error';
+    _markFailed(task);
+  }
+
+  void _markFailed(UploadTask task) {
     task.status = UploadStatus.failed;
-    task.error = error;
     task.client = null;
     _publish();
   }
@@ -153,10 +189,9 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
     try {
       bytes = await File(task.path).readAsBytes();
     } catch (e) {
-      _fail(task, 'Could not read the file: $e');
+      _failUnreadable(task, e);
       return;
     }
-    task.previousHostError = null;
     await _runChain(task, bytes);
   }
 
@@ -189,13 +224,13 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
         switch (task.status) {
           case UploadStatus.uploading:
             if (now.difference(task.lastProgressAt) > _stallTimeout) {
-              _abort(task, 'stalled for ${_stallTimeout.inSeconds}s');
+              _abort(task, UploadFailure(task.hostName, UploadFailureKind.timeout, 'stalled for ${_stallTimeout.inSeconds}s'));
             }
           case UploadStatus.processing:
             waitingOnHost = true;
             final since = task.processingSince;
             if (since != null && now.difference(since) > _processingTimeout) {
-              _abort(task, 'no response ${_processingTimeout.inSeconds}s after upload');
+              _abort(task, UploadFailure(task.hostName, UploadFailureKind.timeout, 'no response ${_processingTimeout.inSeconds}s after upload'));
             }
           case UploadStatus.done:
           case UploadStatus.failed:
@@ -210,9 +245,9 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
   /// Record why, then close the client; the pending await in [_runChain] throws
   /// and treats it like any other failure — falling through to the next host
   /// unless this was the last one.
-  void _abort(UploadTask task, String reason) {
-    if (task.abortReason != null) return; // already aborting this attempt
-    task.abortReason = reason;
+  void _abort(UploadTask task, UploadFailure reason) {
+    if (task.abortFailure != null) return; // already aborting this attempt
+    task.abortFailure = reason;
     task.client?.close();
   }
 
