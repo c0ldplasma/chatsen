@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:chatsen/data/filesharing/upload_queue_cubit.dart';
 import 'package:chatsen/data/notifications_cubit.dart';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
@@ -115,6 +116,9 @@ Future<void> main() async {
         ),
         Provider<BrowserState>(create: (context) => BrowserState()),
         Provider<NotificationsCubit>(create: (context) => NotificationsCubit()),
+        // Above the channel views on purpose: an upload must survive switching
+        // tabs and must never be awaited by the composer.
+        Provider<UploadQueueCubit>(create: (context) => UploadQueueCubit()),
       ],
       child: const App(),
     ),

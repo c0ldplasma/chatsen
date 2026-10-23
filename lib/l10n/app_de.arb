@@ -19,6 +19,24 @@
     }
   },
   "signInAgain": "Anmelden",
+  "uploadingTo": "Upload zu {host}",
+  "@uploadingTo": {
+    "placeholders": {
+      "host": {"type": "String"}
+    }
+  },
+  "uploadProcessing": "Wird verarbeitet\u2026",
+  "uploadFailed": "Upload fehlgeschlagen",
+  "uploadDone": "Hochgeladen",
+  "uploadRetry": "Erneut versuchen",
+  "uploadDismiss": "Ausblenden",
+  "uploadCancel": "Upload abbrechen",
+  "uploadRetryingWith": "Neuer Versuch mit {host}\u2026",
+  "@uploadRetryingWith": {
+    "placeholders": {
+      "host": {"type": "String"}
+    }
+  },
   "expiresIn": "Läuft ab in {time}",
   "@expiresIn": {
     "placeholders": {

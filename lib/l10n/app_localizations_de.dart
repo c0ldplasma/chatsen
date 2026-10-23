@@ -46,6 +46,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get signInAgain => 'Anmelden';
 
   @override
+  String uploadingTo(String host) {
+    return 'Upload zu $host';
+  }
+
+  @override
+  String get uploadProcessing => 'Wird verarbeitet…';
+
+  @override
+  String get uploadFailed => 'Upload fehlgeschlagen';
+
+  @override
+  String get uploadDone => 'Hochgeladen';
+
+  @override
+  String get uploadRetry => 'Erneut versuchen';
+
+  @override
+  String get uploadDismiss => 'Ausblenden';
+
+  @override
+  String get uploadCancel => 'Upload abbrechen';
+
+  @override
+  String uploadRetryingWith(String host) {
+    return 'Neuer Versuch mit $host…';
+  }
+
+  @override
   String expiresIn(String time) {
     return 'Läuft ab in $time';
   }

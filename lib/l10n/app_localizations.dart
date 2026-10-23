@@ -208,6 +208,54 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signInAgain;
 
+  /// No description provided for @uploadingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading to {host}'**
+  String uploadingTo(String host);
+
+  /// No description provided for @uploadProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing…'**
+  String get uploadProcessing;
+
+  /// No description provided for @uploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed'**
+  String get uploadFailed;
+
+  /// No description provided for @uploadDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get uploadDone;
+
+  /// No description provided for @uploadRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get uploadRetry;
+
+  /// No description provided for @uploadDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get uploadDismiss;
+
+  /// No description provided for @uploadCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel upload'**
+  String get uploadCancel;
+
+  /// No description provided for @uploadRetryingWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrying with {host}…'**
+  String uploadRetryingWith(String host);
+
   /// No description provided for @expiresIn.
   ///
   /// In en, this message translates to:
