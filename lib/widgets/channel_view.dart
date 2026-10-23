@@ -24,6 +24,7 @@ import '../tmi/channel/messages/channel_message_chat.dart';
 import 'chat/upload_queue_bar.dart';
 import 'chat_view.dart';
 import 'emoji_glyph.dart';
+import 'emote_button_icon_view.dart';
 
 import 'package:collection/collection.dart';
 
@@ -72,6 +73,8 @@ class ChannelViewState extends State<ChannelView> {
   final TextEditingController textEditingController = TextEditingController();
   bool spamming = false;
   bool emoteKeyboard = false;
+  // The emote menu is open to choose the button's emote (long-press on it).
+  bool pickingButtonIcon = false;
   ChannelMessageChat? replyChannelMessageChat;
   StreamSubscription<UploadTask>? _uploadSubscription;
 
@@ -455,17 +458,20 @@ class ChannelViewState extends State<ChannelView> {
                         onTap: () {
                           setState(() {
                             emoteKeyboard = !emoteKeyboard;
+                            pickingButtonIcon = false;
                           });
                         },
-                        child: SizedBox(
+                        onLongPress: () {
+                          setState(() {
+                            emoteKeyboard = true;
+                            pickingButtonIcon = true;
+                          });
+                        },
+                        child: const SizedBox(
                           width: 48.0,
                           height: 48.0,
                           child: Center(
-                            child: Image.asset(
-                              'assets/emote_providers/kappa.png',
-                              height: 24.0,
-                              filterQuality: FilterQuality.medium,
-                            ),
+                            child: EmoteButtonIconView(),
                           ),
                         ),
                       ),
@@ -506,7 +512,18 @@ class ChannelViewState extends State<ChannelView> {
                           key: const ValueKey(true),
                           height: 350.0,
                           child: EmotePicker(
+                            client: widget.channel.client,
                             channel: widget.channel,
+                            onPickButtonIcon: pickingButtonIcon
+                                ? (emote) async {
+                                    if (await chooseEmoteButtonIcon(context, emote) && mounted) {
+                                      setState(() {
+                                        emoteKeyboard = false;
+                                        pickingButtonIcon = false;
+                                      });
+                                    }
+                                  }
+                                : null,
                             getFieldInput: () => textEditingController.text,
                             setFieldInput: (text) async {
                               setState(() {

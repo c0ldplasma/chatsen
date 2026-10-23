@@ -21,6 +21,7 @@ import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '/data/emote_button_icon.dart';
 import '/data/twitch/token_data.dart';
 import '/data/twitch/user_data.dart';
 import '/data/twitch_account.dart';
@@ -42,6 +43,7 @@ Future<void> main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   await Hive.initFlutter();
+  await EmoteButtonIcon.init();
 
   Hive.registerAdapter(TwitchAccountAdapter());
   Hive.registerAdapter(TokenDataAdapter());

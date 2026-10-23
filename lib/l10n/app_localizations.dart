@@ -849,6 +849,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search'**
   String get search;
+
+  /// No description provided for @emoteMenuButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Emote menu button'**
+  String get emoteMenuButton;
+
+  /// No description provided for @emoteMenuButtonGrayscale.
+  ///
+  /// In en, this message translates to:
+  /// **'Show emote menu button in grayscale'**
+  String get emoteMenuButtonGrayscale;
+
+  /// No description provided for @chooseEmoteMenuButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an emote to use it as the emote menu button'**
+  String get chooseEmoteMenuButton;
+
+  /// No description provided for @resetToKappa.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Kappa'**
+  String get resetToKappa;
+
+  /// No description provided for @emoteMenuButtonDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download that emote. The button wasn\'t changed.'**
+  String get emoteMenuButtonDownloadFailed;
 }
 
 class _AppLocalizationsDelegate

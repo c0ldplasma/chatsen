@@ -185,5 +185,10 @@
     }
   },
   "credits": "Credits",
-  "search": "Search"
+  "search": "Search",
+  "emoteMenuButton": "Emote-Menü-Button",
+  "emoteMenuButtonGrayscale": "Emote-Menü-Button in Graustufen",
+  "chooseEmoteMenuButton": "Tippe auf ein Emote, um es als Emote-Menü-Button zu verwenden",
+  "resetToKappa": "Auf Kappa zurücksetzen",
+  "emoteMenuButtonDownloadFailed": "Das Emote konnte nicht heruntergeladen werden. Der Button wurde nicht geändert."
 }
