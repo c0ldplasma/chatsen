@@ -9,9 +9,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../components/dark_bar.dart';
+import '../components/modal.dart';
 import '../components/surface.dart';
 import '../components/tile.dart';
 import '../data/custom_command.dart';
@@ -88,6 +90,26 @@ class ChannelViewState extends State<ChannelView> {
       final url = task.url;
       if (url != null) insertUploadedUrl(url);
     });
+    if (Platform.isAndroid && !_lostPhotoChecked) {
+      _lostPhotoChecked = true;
+      recoverLostPhoto();
+    }
+  }
+
+  // Android may kill the app while the camera is in front. The photo is then
+  // handed back on the next launch, once, so only the first view asks for it.
+  static bool _lostPhotoChecked = false;
+
+  Future<void> recoverLostPhoto() async {
+    final queue = context.read<UploadQueueCubit>();
+    final response = await ImagePicker().retrieveLostData();
+    final photo = response.file;
+    if (photo == null) return;
+    unawaited(queue.uploadFile(
+      path: photo.path,
+      filename: photo.name,
+      channelName: widget.channel.name,
+    ));
   }
 
   void setReplyChannelMessageChat(ChannelMessageChat? channelMessageChat) {
@@ -151,6 +173,60 @@ class ChannelViewState extends State<ChannelView> {
   /// the text beforehand and wrote that snapshot back afterwards — which threw
   /// away anything typed in the meantime and showed nothing while it ran.
   Future<void> pickAndUploadFiles() async {
+    // Only phones have a camera worth offering; desktop goes straight to the
+    // file picker as before.
+    if (!Platform.isIOS && !Platform.isAndroid) return pickAndUploadFromLibrary();
+
+    await Modal.show(
+      context: context,
+      child: Builder(
+        builder: (context) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Tile(
+              title: AppLocalizations.of(context)!.takePhoto,
+              prefix: const Icon(Icons.photo_camera_outlined),
+              onTap: () {
+                Navigator.of(context).pop();
+                takeAndUploadPhoto();
+              },
+            ),
+            Tile(
+              title: AppLocalizations.of(context)!.chooseFromLibrary,
+              prefix: const Icon(Icons.photo_library_outlined),
+              onTap: () {
+                Navigator.of(context).pop();
+                pickAndUploadFromLibrary();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> takeAndUploadPhoto() async {
+    final queue = context.read<UploadQueueCubit>();
+    final XFile? photo;
+    try {
+      // imageQuality makes the plugin re-encode to JPEG, so an iPhone's HEIC
+      // capture arrives in a format every upload host and browser accepts.
+      photo = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 90);
+    } catch (e) {
+      // Camera access denied or no camera on this device.
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.cameraUnavailable)));
+      return;
+    }
+    if (photo == null) return;
+
+    unawaited(queue.uploadFile(
+      path: photo.path,
+      filename: photo.name,
+      channelName: widget.channel.name,
+    ));
+  }
+
+  Future<void> pickAndUploadFromLibrary() async {
     final queue = context.read<UploadQueueCubit>();
     final picker = await FilePicker.platform.pickFiles(
       allowMultiple: true,

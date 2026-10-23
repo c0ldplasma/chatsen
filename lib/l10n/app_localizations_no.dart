@@ -419,4 +419,14 @@ class AppLocalizationsNo extends AppLocalizations {
   @override
   String get emoteMenuButtonDownloadFailed =>
       'Couldn\'t download that emote. The button wasn\'t changed.';
+
+  @override
+  String get takePhoto => 'Take photo';
+
+  @override
+  String get chooseFromLibrary => 'Choose from library';
+
+  @override
+  String get cameraUnavailable =>
+      'The camera couldn\'t be opened. Check that ColdChat has camera access.';
 }

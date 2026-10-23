@@ -190,5 +190,8 @@
   "emoteMenuButtonGrayscale": "Emote-Menü-Button in Graustufen",
   "chooseEmoteMenuButton": "Tippe auf ein Emote, um es als Emote-Menü-Button zu verwenden",
   "resetToKappa": "Auf Kappa zurücksetzen",
-  "emoteMenuButtonDownloadFailed": "Das Emote konnte nicht heruntergeladen werden. Der Button wurde nicht geändert."
+  "emoteMenuButtonDownloadFailed": "Das Emote konnte nicht heruntergeladen werden. Der Button wurde nicht geändert.",
+  "takePhoto": "Foto aufnehmen",
+  "chooseFromLibrary": "Aus Mediathek auswählen",
+  "cameraUnavailable": "Die Kamera konnte nicht geöffnet werden. Prüfe, ob ColdChat Zugriff auf die Kamera hat."
 }
