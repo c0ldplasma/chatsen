@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -56,7 +57,11 @@ abstract class UploadHost {
     );
     // Some hosts (notably 0x0.st) reject the default Dart user agent outright.
     request.headers['User-Agent'] = 'Chatsen/2.0 (https://github.com/Chatsen/Chatsen)';
-    request.files.add(http.MultipartFile.fromBytes(fileField, bytes, filename: filename));
+    // Not MultipartFile.fromBytes: that wraps the whole file in a single stream
+    // event, so the progress counter jumped straight to 100% and the real
+    // transfer happened under "processing". Small chunks let dart:io's socket
+    // backpressure pace the stream, so the count follows the actual send.
+    request.files.add(http.MultipartFile(fileField, _chunked(bytes), bytes.length, filename: filename));
     request.fields.addAll(fields);
 
     final http.StreamedResponse response;
@@ -84,6 +89,16 @@ abstract class UploadHost {
       throw UploadFailure(name, 'unexpected response: ${_short(url)}');
     }
     return url;
+  }
+
+  static const int _chunkSize = 64 * 1024;
+
+  /// An async* generator suspends at each yield while its subscriber is paused,
+  /// which is what lets the socket throttle it.
+  static Stream<List<int>> _chunked(Uint8List bytes) async* {
+    for (var offset = 0; offset < bytes.length; offset += _chunkSize) {
+      yield Uint8List.sublistView(bytes, offset, min(offset + _chunkSize, bytes.length));
+    }
   }
 
   static String _short(String body) {
@@ -158,8 +173,9 @@ class UploadHosts {
 /// `package:http` exposes no upload progress, but [http.BaseRequest.finalize]
 /// is the single point every byte passes through on its way to the socket, so
 /// wrapping it here gives a faithful "sent" count without pulling in `dio`.
-/// Note this is bytes *written*, not bytes acknowledged by the server — hence
-/// the UI's switch to an indeterminate "processing" state at 100%.
+/// This counts bytes accepted by the socket, which runs ahead of what the host
+/// has received by at most the OS send buffer — hence the UI's indeterminate
+/// "processing" state once the count reaches 100%.
 class _ProgressMultipartRequest extends http.MultipartRequest {
   final UploadProgress onProgress;
 

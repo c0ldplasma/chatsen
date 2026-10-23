@@ -26,6 +26,11 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
   Stream<UploadTask> get completed => _completed.stream;
 
   static const Duration _stallTimeout = Duration(seconds: 45);
+
+  /// How long to wait for the host once every byte is out. Separate from the
+  /// stall timeout because nothing "moves" in this phase — the old code had no
+  /// bound here except the 5-minute attempt cap.
+  static const Duration _processingTimeout = Duration(seconds: 60);
   static const Duration _attemptTimeout = Duration(minutes: 5);
 
   int _nextId = 0;
@@ -83,6 +88,8 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
       task.sent = 0;
       task.status = UploadStatus.uploading;
       task.lastProgressAt = DateTime.now();
+      task.processingSince = null;
+      task.abortReason = null;
       final client = http.Client();
       task.client = client;
       _publish();
@@ -100,6 +107,7 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
             task.lastProgressAt = DateTime.now();
             if (sent >= total && task.status == UploadStatus.uploading) {
               task.status = UploadStatus.processing;
+              task.processingSince = DateTime.now();
             }
             _publish();
           },
@@ -115,7 +123,9 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
         return;
       } catch (e) {
         if (task.status == UploadStatus.cancelled) return;
-        final message = e is UploadFailure ? e.message : '$e';
+        // Prefer the watchdog's reason: closing the client to abort shows up
+        // here as an opaque "connection closed" error.
+        final message = task.abortReason ?? (e is UploadFailure ? e.message : '$e');
         final isLast = i == UploadHosts.chain.length - 1;
         if (isLast) {
           _fail(task, '${host.name}: $message');
@@ -166,19 +176,44 @@ class UploadQueueCubit extends Cubit<List<UploadTask>> {
   }
 
   /// A socket that goes quiet produces no error and no timeout — the request
-  /// just hangs. Fail it ourselves so the chip offers a retry instead of
-  /// spinning forever.
+  /// just hangs. Abort it ourselves so the chain can move to the next host, or
+  /// the chip can offer a retry, instead of spinning forever.
+  ///
+  /// Ticks every second rather than every few because it also drives the
+  /// elapsed-seconds label while waiting on a host.
   void _ensureWatchdog() {
-    _stallWatchdog ??= Timer.periodic(const Duration(seconds: 5), (_) {
+    _stallWatchdog ??= Timer.periodic(const Duration(seconds: 1), (_) {
       final now = DateTime.now();
+      var waitingOnHost = false;
       for (final task in state) {
-        if (task.status != UploadStatus.uploading) continue;
-        if (now.difference(task.lastProgressAt) > _stallTimeout) {
-          task.client?.close();
-          _fail(task, '${task.hostName}: stalled for ${_stallTimeout.inSeconds}s');
+        switch (task.status) {
+          case UploadStatus.uploading:
+            if (now.difference(task.lastProgressAt) > _stallTimeout) {
+              _abort(task, 'stalled for ${_stallTimeout.inSeconds}s');
+            }
+          case UploadStatus.processing:
+            waitingOnHost = true;
+            final since = task.processingSince;
+            if (since != null && now.difference(since) > _processingTimeout) {
+              _abort(task, 'no response ${_processingTimeout.inSeconds}s after upload');
+            }
+          case UploadStatus.done:
+          case UploadStatus.failed:
+          case UploadStatus.cancelled:
+            break;
         }
       }
+      if (waitingOnHost) _publish();
     });
+  }
+
+  /// Record why, then close the client; the pending await in [_runChain] throws
+  /// and treats it like any other failure — falling through to the next host
+  /// unless this was the last one.
+  void _abort(UploadTask task, String reason) {
+    if (task.abortReason != null) return; // already aborting this attempt
+    task.abortReason = reason;
+    task.client?.close();
   }
 
   @override
