@@ -384,6 +384,12 @@ class Client {
       return;
     }
 
+    // Show this account's Twitch emotes from the last session right away; the
+    // fresh list only arrives with GLOBALUSERSTATE after connecting. Also
+    // clears the previous account's emotes when switching accounts.
+    final userId = twitchAccount.tokenData.userId;
+    twitchUserEmotes.change(userId != null ? cache?.loadEmotes(EmoteBadgeCache.twitchUserEmotesKey(userId)) ?? [] : []);
+
     receiver.add(ConnectionConnect(twitchAccount));
     transmitter.add(ConnectionConnect(twitchAccount));
     // Confirm with Twitch in the background — the local expiry check only
@@ -423,15 +429,22 @@ class Client {
           if (connection.state is ConnectionStateWithCredentials) {
             final stateTwitchAccount = (connection.state as ConnectionStateWithCredentials).twitchAccount;
             final emotes = await Twitch.emoteSets(stateTwitchAccount.tokenData, event.tags['emote-sets']?.split(',') ?? []);
-            twitchUserEmotes.change([
-              for (final emote in emotes)
-                Emote(
-                  id: emote.id,
-                  mipmap: emote.images.values.toList(),
-                  name: emote.name,
-                  provider: providers.firstWhere((element) => element.name == 'Twitch'),
-                ),
-            ]);
+            // Every account has at least the global Twitch emotes, so an empty
+            // result means the request failed: keep the cached list instead.
+            if (emotes.isNotEmpty) {
+              final userEmotes = [
+                for (final emote in emotes)
+                  Emote(
+                    id: emote.id,
+                    mipmap: emote.images.values.toList(),
+                    name: emote.name,
+                    provider: providers.firstWhere((element) => element.name == 'Twitch'),
+                  ),
+              ];
+              twitchUserEmotes.change(userEmotes);
+              final userId = stateTwitchAccount.tokenData.userId;
+              if (userId != null) cache?.saveEmotes(EmoteBadgeCache.twitchUserEmotesKey(userId), userEmotes);
+            }
           }
         } catch (e) {
           log('Couldn\'t get twitch user emotes');

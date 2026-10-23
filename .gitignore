@@ -8,6 +8,7 @@
 # App assets (e.g. launcher icon source)
 !/assets/**/*.png
 !/assets/**/*.jpg
+!/assets/**/*.svg
 
 # Source files
 !/lib/**/*.dart
