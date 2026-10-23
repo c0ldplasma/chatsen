@@ -9,7 +9,7 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get chatsen => 'Chatsen';
+  String get chatsen => 'ColdChat';
 
   @override
   String get catsen => 'Catsen';
@@ -33,6 +33,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get expiresNever => 'Никогда не истекает';
+
+  @override
+  String get loginExpired => 'Login expired';
+
+  @override
+  String loginExpiredDescription(String login) {
+    return 'Twitch rejected the login for $login. Chat stays disconnected until you sign in again.';
+  }
+
+  @override
+  String get signInAgain => 'Sign in';
 
   @override
   String expiresIn(String time) {
@@ -325,7 +336,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get optionNotAvailablePaywalled =>
-      'Эта опция предназначена только для спонсоров Chatsen.';
+      'Эта опция предназначена только для спонсоров ColdChat.';
 
   @override
   String get clearAll => 'Очистить всё';

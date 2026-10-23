@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatsen/modal/components/modal_header.dart';
 import 'package:chatsen/modal/settings.dart';
@@ -14,7 +12,7 @@ import '/components/boxlistener.dart';
 import '/components/modal.dart';
 import '/components/separator.dart';
 import '/data/twitch_account.dart';
-import 'oauth_webview.dart';
+import 'login_flow.dart';
 import 'twitch_token_input.dart';
 import 'twitch_account.dart';
 
@@ -68,21 +66,7 @@ class ChatsenModal extends StatelessWidget {
                     twitchAccount: twitchAccount,
                   ),
                 Tile(
-                  onTap: () {
-                    if (!Platform.isAndroid && !Platform.isIOS) {
-                      Modal.show(
-                        context: context,
-                        child: const TwitchTokenInputModal(),
-                      );
-                      return;
-                    }
-
-                    Modal.show(
-                      enableDrag: false,
-                      context: context,
-                      child: const OAuthWebViewModal(),
-                    );
-                  },
+                  onTap: () => showTwitchLogin(context),
                   onLongPress: () {
                     Modal.show(
                       context: context,

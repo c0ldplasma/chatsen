@@ -146,10 +146,19 @@ class _ExpirationTextState extends State<ExpirationText> {
 
   @override
   Widget build(BuildContext context) {
+    final tokenData = widget.twitchAccount.tokenData;
+    // Past expiry the plain countdown just rendered a negative duration
+    // ("Expires in -9:07:12"), which reads like a glitch rather than the reason
+    // chat stopped working. Call it out instead.
+    final expired = tokenData.isExpired;
     return Text(
-      widget.twitchAccount.tokenData.expiresAt != null ? AppLocalizations.of(context)!.expiresIn('${widget.twitchAccount.tokenData.expiresAt?.difference(DateTime.now())}') : AppLocalizations.of(context)!.expiresNever,
+      expired
+          ? AppLocalizations.of(context)!.loginExpired
+          : tokenData.expiresAt != null
+              ? AppLocalizations.of(context)!.expiresIn('${tokenData.expiresAt?.difference(DateTime.now())}')
+              : AppLocalizations.of(context)!.expiresNever,
       style: TextStyle(
-        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.75),
+        color: expired ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onBackground.withOpacity(0.75),
       ),
       // style: Theme.of(context).textTheme.subtitle2,
     );

@@ -62,6 +62,13 @@ class ChannelMessageChatSubInfo {
 }
 
 class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, ChannelMessageEmbeds, ChannelMessageId {
+  // Hoisted out of build() so they are compiled/allocated once instead of per
+  // message (or, for the url regexes, per word) during history deserialization.
+  static final RegExp _actionRegex = RegExp('ACTION .*');
+  static final RegExp _imageRegex = RegExp(r'\.(png|apng|gif|webp|jpg|jpeg)$');
+  static final RegExp _videoRegex = RegExp(r'\.(webm|mp4)$');
+  static final TwitchProvider _twitchProvider = TwitchProvider();
+
   irc.Message message;
   bool action = false;
   List<dynamic> splits = [];
@@ -122,7 +129,7 @@ class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, Channel
 
     var messageText = message.parameters.skip(1).join(':');
 
-    if (messageText.contains(RegExp('ACTION .*'))) action = true;
+    if (messageText.contains(_actionRegex)) action = true;
     if (action) messageText = messageText.substring('ACTION '.length, messageText.length - 1);
 
     // replace U+200D (ZERO WIDTH JOINER) with U+E0002
@@ -163,10 +170,10 @@ class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, Channel
       log('Couldn\'t parse Twitch emote data: ${message.tags['emotes']} -> $e');
     }
 
-    final allBadges = (channel?.channelBadges.state ?? []) + (channel?.client.globalBadges.state ?? []);
+    final badgeLookup = channel?.badgeLookup ?? const <String, CustomBadge>{};
     final twitchBadges = message.tags['badges']?.split(',') ?? [];
     for (final twitchBadgeId in twitchBadges) {
-      final badge = allBadges.firstWhereOrNull((badge) => badge.id == twitchBadgeId);
+      final badge = badgeLookup[twitchBadgeId];
       if (badge != null) badges.add(badge);
     }
 
@@ -174,12 +181,12 @@ class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, Channel
       if (badgeUsers.users.contains(user.id)) badges.add(badgeUsers.badge);
     }
 
-    final emotes = (channel?.channelEmotes.state ?? []) + (channel?.client.globalEmotes.state ?? []);
+    final emoteLookup = channel?.emoteLookup ?? const <String, Emote>{};
     var textSplits = messageText.split(' ').where((split) => split.isNotEmpty);
     if (replyInfo != null) textSplits = textSplits.skip(1);
 
     for (final textSplit in textSplits) {
-      var emote = emotes.firstWhereOrNull((emote) => (emote.code ?? emote.name) == textSplit);
+      var emote = emoteLookup[textSplit];
       if (textSplit.startsWith('')) {
         final emoteData = textSplit.substring(1).split('|');
         emote = Emote(
@@ -190,21 +197,19 @@ class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, Channel
             'https://static-cdn.jtvnw.net/emoticons/v2/${emoteData.first}/default/dark/3.0',
           ],
           name: emoteData.last,
-          provider: TwitchProvider(),
+          provider: _twitchProvider,
         );
       }
 
       final uri = textSplit.startsWith('http') ? Uri.tryParse(textSplit) : null;
-      final imageRegex = RegExp(r'\.(png|apng|gif|webp|jpg|jpeg)$');
-      final videoRegex = RegExp(r'\.(webm|mp4)$');
 
       if (emote != null) {
         splits.add(emote);
       } else if (uri != null && uri.isAbsolute) {
         splits.add(InlineUrl(url: '$uri'));
-        if (imageRegex.hasMatch('${uri.removeFragment()}')) {
+        if (_imageRegex.hasMatch('${uri.removeFragment()}')) {
           embeds.add(ImageEmbed(url: '$uri'));
-        } else if (videoRegex.hasMatch('${uri.removeFragment()}')) {
+        } else if (_videoRegex.hasMatch('${uri.removeFragment()}')) {
           embeds.add(VideoEmbed(url: '$uri'));
         } else if (uri.host == 'anonfiles.com') {
           try {

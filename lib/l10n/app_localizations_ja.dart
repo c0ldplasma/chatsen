@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get chatsen => 'チャットセン';
+  String get chatsen => 'ColdChat';
 
   @override
   String get catsen => 'キャットセン';
@@ -33,6 +33,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get expiresNever => '期限なし';
+
+  @override
+  String get loginExpired => 'Login expired';
+
+  @override
+  String loginExpiredDescription(String login) {
+    return 'Twitch rejected the login for $login. Chat stays disconnected until you sign in again.';
+  }
+
+  @override
+  String get signInAgain => 'Sign in';
 
   @override
   String expiresIn(String time) {
@@ -320,7 +331,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'このオプションはお使いのプラットフォームでは利用できません。';
 
   @override
-  String get optionNotAvailablePaywalled => 'このオプションはChatsenサポーター専用です。';
+  String get optionNotAvailablePaywalled => 'このオプションはColdChatサポーター専用です。';
 
   @override
   String get clearAll => 'すべてクリア';

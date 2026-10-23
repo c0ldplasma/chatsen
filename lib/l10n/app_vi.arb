@@ -1,5 +1,5 @@
 {
-  "chatsen": "Chatsen",
+  "chatsen": "ColdChat",
   "catsen": "Catsen",
   "loggedInVia": "Đã đăng nhập qua {provider}",
   "@loggedInVia": {
@@ -144,7 +144,7 @@
   "noNotifications": "Một ai đó, ở đâu đó, sẽ nhắc đến bạn vào một ngày nào đó.",
   "backgroundNotifications": "Thông báo trong nền",
   "optionNotAvailableOnYourPlatform": "Tùy chọn này không có sẵn trên nền tảng của bạn.",
-  "optionNotAvailablePaywalled": "Tùy chọn này chỉ dành cho người dùng ủng hộ Chatsen.",
+  "optionNotAvailablePaywalled": "Tùy chọn này chỉ dành cho người dùng ủng hộ ColdChat.",
   "clearAll": "Xoá tất cả",
   "cache": "Bộ nhớ đệm",
   "clearCache": "Xóa bộ nhớ đệm",

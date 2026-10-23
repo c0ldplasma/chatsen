@@ -38,27 +38,64 @@ class App extends StatefulWidget {
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> implements ClientListener {
+class _AppState extends State<App> with WidgetsBindingObserver implements ClientListener {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((ts) => context.read<Client>().listeners.add(this));
   }
 
   @override
   void dispose() {
-    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     context.read<Client>().listeners.remove(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Check liveness on every foreground; onAppResumed no-ops if the socket is
+    // still alive, so a quick app-switch costs nothing. Don't gate on measured
+    // background duration — iOS lifecycle events are unreliable for that.
+    if (state == AppLifecycleState.resumed) {
+      context.read<Client>().onAppResumed();
+    }
   }
 
   @override
   Future<ChannelMessage> onMessageReceived(ChannelMessage message) async {
     if (message is ChannelMessageChat) {
       if (message.mentionned) {
-        BlocProvider.of<NotificationsCubit>(context).add(message);
+        // The message stays visually highlighted regardless; we only avoid
+        // re-adding a notification for a mention we already surfaced in a
+        // previous session (e.g. when it comes back via history on launch).
+        final box = Hive.box('SeenMentions');
+        if (!box.containsKey(message.id)) {
+          BlocProvider.of<NotificationsCubit>(context).add(message);
+          _markMentionSeen(message.id);
+        }
       }
     }
     return message;
+  }
+
+  static const int _seenMentionMaxEntries = 500;
+
+  void _markMentionSeen(String messageId) {
+    if (messageId.isEmpty) return;
+    final box = Hive.box('SeenMentions');
+    if (box.containsKey(messageId)) return;
+    box.put(messageId, DateTime.now().millisecondsSinceEpoch);
+    if (box.length > _seenMentionMaxEntries) {
+      // Trim oldest entries (lowest stored timestamps) so the box doesn't
+      // grow unbounded across sessions.
+      final entries = box.toMap().entries.toList()
+        ..sort((a, b) => (a.value as int).compareTo(b.value as int));
+      final toRemove = entries.take(box.length - _seenMentionMaxEntries).map((e) => e.key).toList();
+      box.deleteAll(toRemove);
+    }
   }
 
   @override
@@ -116,13 +153,13 @@ class _AppState extends State<App> implements ClientListener {
             // darkTheme: M3Parser.parse(M3Themes.themes['green']!, dark: true),
             theme: M3Parser.patchTheme(
               ThemeData(
-                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF00FF00),
+                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF2196F3),
                 brightness: Brightness.light,
               ),
             ),
             darkTheme: M3Parser.patchTheme(
               ThemeData(
-                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF00FF00),
+                colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF2196F3),
                 brightness: Brightness.dark,
               ),
             ),

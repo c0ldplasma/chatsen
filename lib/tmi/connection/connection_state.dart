@@ -23,14 +23,16 @@ class ConnectionConnecting extends ConnectionStateWithCredentials {
 }
 
 class ConnectionConnected extends ConnectionStateWithCredentials {
-  final List<String> blockedUserIds;
+  // Mutable so the (paginated, potentially slow) blocked-user fetch can be
+  // populated in the background after the connected state is emitted, without
+  // blocking channel joins on it. Not part of Equatable props.
+  List<String> blockedUserIds;
 
   ConnectionConnected(
     TwitchAccount credentials, {
-    required this.blockedUserIds,
-  }) : super(credentials) {
-    print(blockedUserIds);
-  }
+    List<String>? blockedUserIds,
+  })  : blockedUserIds = blockedUserIds ?? [],
+        super(credentials);
 }
 
 class ConnectionReconnecting extends ConnectionStateWithCredentials {
