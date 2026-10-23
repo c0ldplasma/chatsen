@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../data/badge_users.dart';
 import '../data/custom_badge.dart';
 import '../data/emote.dart';
+import '../providers/emote_provider.dart';
 import '../providers/provider.dart';
 
 /// Lightweight JSON cache for emotes and badges so first-paint after launch
@@ -81,7 +82,10 @@ class EmoteBadgeCache {
 
   Emote? _emoteFromJson(Map<String, dynamic> m) {
     final provider = _providerByName(m['provider'] as String?);
-    if (provider == null) return null;
+    // Also drops emotes cached from a provider that no longer serves emotes
+    // (Chatsen's own emotes were removed), instead of showing them until the
+    // next refresh overwrites the cache.
+    if (provider is! EmoteProvider) return null;
     return Emote(
       id: m['id'] as String,
       name: m['name'] as String,

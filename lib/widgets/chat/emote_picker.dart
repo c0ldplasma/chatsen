@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
 
@@ -10,6 +11,7 @@ import 'package:http/http.dart' as http;
 
 import '../../components/surface.dart';
 import '../../data/emote.dart';
+import '../../providers/emojis.dart';
 import '../../tmi/channel/channel.dart';
 
 class SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
@@ -85,15 +87,19 @@ class _EmotePickerState extends State<EmotePicker> {
     final globalEmotes = widget.channel.client.globalEmotes.state + widget.channel.client.twitchUserEmotes.state;
     final allEmotes = channelEmotes + globalEmotes;
 
-    final groups = <String, List<Emote>>{};
+    final emoteGroups = <String, List<Emote>>{};
+    final emojiGroups = <String, List<Emote>>{};
     final groupKeys = <String, GlobalKey>{};
     for (final providerGroup in groupBy(allEmotes, (emote) => emote.provider).entries) {
+      // Emojis go after all Twitch/7TV/BTTV/FFZ sections.
+      final target = providerGroup.key is EmojiProvider ? emojiGroups : emoteGroups;
       for (final category in groupBy(providerGroup.value, (emote) => emote.category).entries) {
-        groups.putIfAbsent(category.key ?? providerGroup.key.name, () => []);
-        groups[category.key ?? providerGroup.key.name]!.addAll(category.value);
+        target.putIfAbsent(category.key ?? providerGroup.key.name, () => []);
+        target[category.key ?? providerGroup.key.name]!.addAll(category.value);
         groupKeys.putIfAbsent(category.key ?? providerGroup.key.name, () => GlobalKey());
       }
     }
+    final groups = {...emoteGroups, ...emojiGroups};
 
     const icons = {
       "Symbols": Icon(Icons.star_border_outlined),
@@ -241,17 +247,15 @@ class _EmotePickerState extends State<EmotePicker> {
                                   });
                                 },
                                 borderRadius: BorderRadius.circular(64.0),
-                                child: AspectRatio(
-                                  aspectRatio: 1 / 1,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Center(
-                                      child: icons.containsKey(category)
-                                          ? icons[category]
-                                          : Text(
-                                              category,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                child: Tooltip(
+                                  message: category,
+                                  child: AspectRatio(
+                                    aspectRatio: 1 / 1,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Center(
+                                        child: icons[category] ?? providerLogo(context, category) ?? firstEmoteIcon(groups[category]!),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -268,6 +272,30 @@ class _EmotePickerState extends State<EmotePicker> {
       ),
     );
   }
+
+  /// Logo for a provider's section, or null if [category] isn't a provider.
+  Widget? providerLogo(BuildContext context, String category) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return switch (category) {
+      'Twitch' => SvgPicture.asset(
+          'assets/emote_providers/twitch.svg',
+          colorFilter: const ColorFilter.mode(Color(0xFF9146FF), BlendMode.srcIn),
+        ),
+      '7TV' => SvgPicture.asset(
+          'assets/emote_providers/7tv.svg',
+          colorFilter: ColorFilter.mode(onSurface, BlendMode.srcIn),
+        ),
+      'BetterTTV' => SvgPicture.asset('assets/emote_providers/bttv.svg'),
+      'FrankerFaceZ' => Image.asset('assets/emote_providers/ffz.png', filterQuality: FilterQuality.medium),
+      _ => null,
+    };
+  }
+
+  /// Fallback for any other section: its first emote, never cut-off text.
+  Widget firstEmoteIcon(List<Emote> emotes) => CachedNetworkImage(
+        imageUrl: emotes.first.mipmap.last,
+        fit: BoxFit.contain,
+      );
 
   Expanded buildGifColumn(List<GifInfo> gifs) {
     return Expanded(

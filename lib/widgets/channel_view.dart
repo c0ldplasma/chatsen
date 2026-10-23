@@ -17,6 +17,7 @@ import '../components/tile.dart';
 import '../data/custom_command.dart';
 import '../data/filesharing/upload_queue_cubit.dart';
 import '../data/filesharing/upload_task.dart';
+import '../data/emote.dart';
 import '../data/settings/chat_settings.dart';
 import '../tmi/channel/channel.dart';
 import '../tmi/channel/messages/channel_message_chat.dart';
@@ -197,7 +198,15 @@ class ChannelViewState extends State<ChannelView> {
 
     final matchingEmotes = (widget.channel.channelEmotes.state + widget.channel.client.globalEmotes.state + widget.channel.client.twitchUserEmotes.state).where((emote) {
       return (chatSettings.emoteAutocompletionWithColon ? currentSearch.startsWith(':') : true) && ':${emote.name}:'.toLowerCase().contains(currentSearch);
-    });
+    }).toList();
+    // Emotes whose name starts with the search go first, then the ones that
+    // only match further into the name. Stable, so each group keeps its order.
+    final emotePrefix = currentSearch.startsWith(':') ? currentSearch : ':$currentSearch';
+    bool startsWithSearch(Emote emote) => ':${emote.name}:'.toLowerCase().startsWith(emotePrefix);
+    final sortedEmotes = [
+      ...matchingEmotes.where(startsWithSearch),
+      ...matchingEmotes.whereNot(startsWithSearch),
+    ];
 
     final chatters = widget.channel.channelChatters.state?.getAllChatters() ?? [];
     final matchingChatters = chatters.where((chatter) {
@@ -245,7 +254,7 @@ class ChannelViewState extends State<ChannelView> {
             setState(() {});
           },
         ),
-      for (final emote in matchingEmotes)
+      for (final emote in sortedEmotes)
         AutocompletionItem(
           type: AutocompletionType.emote,
           prefix: CachedNetworkImage(imageUrl: emote.mipmap.last, width: 24.0, height: 24.0),
@@ -450,8 +459,12 @@ class ChannelViewState extends State<ChannelView> {
                         child: SizedBox(
                           width: 48.0,
                           height: 48.0,
-                          child: Icon(
-                            Icons.emoji_emotions_outlined,
+                          child: Center(
+                            child: Image.asset(
+                              'assets/emote_providers/kappa.png',
+                              height: 24.0,
+                              filterQuality: FilterQuality.medium,
+                            ),
                           ),
                         ),
                       ),
@@ -474,29 +487,44 @@ class ChannelViewState extends State<ChannelView> {
                     ],
                   ),
                 ),
-                if (emoteKeyboard)
-                  SizedBox(
-                    height: 350.0,
-                    child: EmotePicker(
-                      channel: widget.channel,
-                      getFieldInput: () => textEditingController.text,
-                      setFieldInput: (text) async {
-                        setState(() {
-                          textEditingController.text = text;
-                          textEditingController.selection = TextSelection.fromPosition(TextPosition(offset: textEditingController.text.length));
-                        });
-                      },
-                      insertFieldInput: (text) async {
-                        setState(() {
-                          final cursorPosition = max(0, textEditingController.selection.baseOffset);
-                          if (textEditingController.text.isEmpty || cursorPosition >= textEditingController.text.length || textEditingController.text[cursorPosition] != ' ') text = '$text ';
-                          if (cursorPosition > 0 && textEditingController.text[cursorPosition - 1] != ' ') text = ' $text';
-                          textEditingController.text = textEditingController.text.substring(0, cursorPosition) + text + textEditingController.text.substring(cursorPosition);
-                          textEditingController.selection = TextSelection.fromPosition(TextPosition(offset: cursorPosition + text.length));
-                        });
-                      },
-                    ),
+                // Slides open and closed like a keyboard instead of popping in. The
+                // AnimatedSwitcher keeps the picker mounted while it collapses.
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  reverseDuration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) => SizeTransition(
+                    sizeFactor: animation,
+                    axisAlignment: -1.0,
+                    child: child,
                   ),
+                  child: !emoteKeyboard
+                      ? const SizedBox.shrink(key: ValueKey(false))
+                      : SizedBox(
+                          key: const ValueKey(true),
+                          height: 350.0,
+                          child: EmotePicker(
+                            channel: widget.channel,
+                            getFieldInput: () => textEditingController.text,
+                            setFieldInput: (text) async {
+                              setState(() {
+                                textEditingController.text = text;
+                                textEditingController.selection = TextSelection.fromPosition(TextPosition(offset: textEditingController.text.length));
+                              });
+                            },
+                            insertFieldInput: (text) async {
+                              setState(() {
+                                final cursorPosition = max(0, textEditingController.selection.baseOffset);
+                                if (textEditingController.text.isEmpty || cursorPosition >= textEditingController.text.length || textEditingController.text[cursorPosition] != ' ') text = '$text ';
+                                if (cursorPosition > 0 && textEditingController.text[cursorPosition - 1] != ' ') text = ' $text';
+                                textEditingController.text = textEditingController.text.substring(0, cursorPosition) + text + textEditingController.text.substring(cursorPosition);
+                                textEditingController.selection = TextSelection.fromPosition(TextPosition(offset: cursorPosition + text.length));
+                              });
+                            },
+                          ),
+                        ),
+                ),
             ],
           ),
         ),
