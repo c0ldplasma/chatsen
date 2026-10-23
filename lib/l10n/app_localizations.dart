@@ -190,6 +190,24 @@ abstract class AppLocalizations {
   /// **'Never expires'**
   String get expiresNever;
 
+  /// No description provided for @loginExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Login expired'**
+  String get loginExpired;
+
+  /// No description provided for @loginExpiredDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch rejected the login for {login}. Chat stays disconnected until you sign in again.'**
+  String loginExpiredDescription(String login);
+
+  /// No description provided for @signInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInAgain;
+
   /// No description provided for @expiresIn.
   ///
   /// In en, this message translates to:

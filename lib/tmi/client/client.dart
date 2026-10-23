@@ -177,16 +177,15 @@ class Client {
   // cares about come up quickly; steady-state ticks stay conservative.
   bool _firstJoinPass = true;
 
+  // Channels the user has explicitly requested (active chat view) or last had
+  // open sort first, so the channel actually being looked at is handled first.
+  static int _byJoinPriority(Channel a, Channel b) => a.joinPriority == b.joinPriority ? 0 : (a.joinPriority ? -1 : 1);
+
   void _joinPass() {
     if (receiver.state is! ConnectionConnected) return;
     final disconnected = channels.state.where((channel) => channel.state is ChannelDisconnected).toList();
     if (disconnected.isEmpty) return;
-    // Prioritize channels the user has explicitly requested (active chat view)
-    // or last had open, so the channel actually being looked at joins first.
-    disconnected.sort((a, b) {
-      if (a.joinPriority == b.joinPriority) return 0;
-      return a.joinPriority ? -1 : 1;
-    });
+    disconnected.sort(_byJoinPriority);
     final batchSize = _firstJoinPass ? 12 : 4;
     _firstJoinPass = false;
     final channelsToJoin = disconnected.take(batchSize).toList();
@@ -294,9 +293,102 @@ class Client {
     }
   }
 
+  /// Called every time the app returns to the foreground. Actively probes each
+  /// socket (PING -> expect a fast reply); only the ones that don't answer are
+  /// reconnected. A quick app-switch over a live connection answers instantly
+  /// and costs nothing — no needless reconnect — while a socket killed by a
+  /// lock/background fails the probe and recovers right away instead of waiting
+  /// up to ~70s for the steady-state watchdog. When anything was actually dead,
+  /// gap-fill the messages missed while away (parallel, dedup-safe).
+  Future<void> onAppResumed() async {
+    // A token can expire while the app sits in the background for days, so
+    // check before probing: reconnecting with it is pointless and the socket
+    // failure would be indistinguishable from a network hiccup.
+    final account = receiver.twitchAccount ?? transmitter.twitchAccount;
+    if (account != null && account.tokenData.accessToken != null && account.tokenData.isExpired) {
+      _rejectCredentials(account);
+      return;
+    }
+    if (receiver.credentialsRejected || transmitter.credentialsRejected) return;
+    if (account != null) unawaited(validateCredentials(account));
+
+    final results = await Future.wait([receiver.probeAlive(), transmitter.probeAlive()]);
+    final receiverAlive = results[0];
+    final transmitterAlive = results[1];
+    if (receiverAlive && transmitterAlive) return; // connection still live — nothing to do
+
+    if (!receiverAlive) receiver.forceReconnect();
+    if (!transmitterAlive) transmitter.forceReconnect();
+
+    // Visible (active/last) channel first so the chat being looked at fills
+    // first; insertHistoryMessages dedups by id, so the later rejoin backfill
+    // is a no-op for anything we pull in here.
+    final viewed = channels.state.where((channel) => channel.recentMessagesEverFetched).toList()..sort(_byJoinPriority);
+    await Future.wait(viewed.map((channel) {
+      channel.joinBackfillDone = false;
+      return _fetchAndInsertHistory(channel);
+    }));
+  }
+
+  /// Twitch refuses a bad token with an untagged NOTICE whose text we have to
+  /// match; there is no msg-id on these. Only ever sent with target `*` (i.e.
+  /// before we are authenticated), which keeps this from matching channel chat.
+  static bool _isAuthFailureNotice(irc.Message event) {
+    if (event.parameters.isEmpty || event.parameters.first != '*') return false;
+    final text = event.parameters.length > 1 ? event.parameters.last.toLowerCase() : '';
+    return text.contains('login authentication failed') || text.contains('login unsuccessful') || text.contains('improperly formatted auth');
+  }
+
+  void _rejectCredentials(TwitchAccount twitchAccount) {
+    receiver.add(ConnectionCredentialsRejected(twitchAccount));
+    transmitter.add(ConnectionCredentialsRejected(twitchAccount));
+  }
+
+  /// Ask Twitch whether the stored token is still good, and keep [TokenData]
+  /// honest about it. On a 401 the login is dead — reject it so the UI can say
+  /// so instead of letting the reconnect loop churn silently. Network failures
+  /// are ignored: being offline is not proof the token expired.
+  Future<void> validateCredentials(TwitchAccount twitchAccount) async {
+    final accessToken = twitchAccount.tokenData.accessToken;
+    if (accessToken == null) return; // anonymous
+    if (twitchAccount.tokenData.isExpired) {
+      _rejectCredentials(twitchAccount);
+      return;
+    }
+
+    try {
+      final fresh = await Twitch.validateToken(accessToken);
+      // The stored expiresAt is a snapshot from login time and is never touched
+      // afterwards; refresh it so the account modal and the local expiry check
+      // reflect reality.
+      twitchAccount.tokenData.expiresAt = fresh.expiresAt;
+      twitchAccount.tokenData.scopes = fresh.scopes;
+      try {
+        await twitchAccount.save();
+      } catch (_) {
+        // Not attached to a box (e.g. constructed in-memory) — nothing to persist.
+      }
+      if (twitchAccount.tokenData.isExpired) _rejectCredentials(twitchAccount);
+    } on TwitchTokenInvalidException {
+      _rejectCredentials(twitchAccount);
+    } catch (e) {
+      log('Couldn\'t validate the Twitch token: $e');
+    }
+  }
+
   Future<void> connectAs(TwitchAccount twitchAccount) async {
+    // Don't even open the socket with a token we already know is dead: the
+    // handshake would fail and every channel would be parted with no feedback.
+    if (twitchAccount.tokenData.accessToken != null && twitchAccount.tokenData.isExpired) {
+      _rejectCredentials(twitchAccount);
+      return;
+    }
+
     receiver.add(ConnectionConnect(twitchAccount));
     transmitter.add(ConnectionConnect(twitchAccount));
+    // Confirm with Twitch in the background — the local expiry check only
+    // catches tokens we know about; a manually revoked one still needs the API.
+    unawaited(validateCredentials(twitchAccount));
   }
 
   Future<void> stateChange(Connection connection, Change<ConnectionState> change) async {
@@ -430,6 +522,16 @@ class Client {
         );
         break;
       case 'NOTICE':
+        // The handshake rejection arrives as `NOTICE * :Login authentication
+        // failed` — target `*`, so the channel lookup below finds nothing and
+        // used to drop it on the floor while the socket closed and the backoff
+        // retried the same dead token forever. Catch it here instead.
+        if (_isAuthFailureNotice(event)) {
+          final account = connection.twitchAccount;
+          if (account != null) _rejectCredentials(account);
+          break;
+        }
+
         final channelName = event.parameters[0];
         final channel = channels.state.firstWhereOrNull((channel) => channel.name == channelName);
         if (channel == null) {

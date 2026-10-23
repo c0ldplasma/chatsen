@@ -38,17 +38,30 @@ class App extends StatefulWidget {
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> implements ClientListener {
+class _AppState extends State<App> with WidgetsBindingObserver implements ClientListener {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((ts) => context.read<Client>().listeners.add(this));
   }
 
   @override
   void dispose() {
-    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     context.read<Client>().listeners.remove(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Check liveness on every foreground; onAppResumed no-ops if the socket is
+    // still alive, so a quick app-switch costs nothing. Don't gate on measured
+    // background duration — iOS lifecycle events are unreliable for that.
+    if (state == AppLifecycleState.resumed) {
+      context.read<Client>().onAppResumed();
+    }
   }
 
   @override

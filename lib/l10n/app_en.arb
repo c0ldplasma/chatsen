@@ -17,6 +17,16 @@
   "privacyPolicy": "Privacy Policy",
   "settings": "Settings",
   "expiresNever": "Never expires",
+  "loginExpired": "Login expired",
+  "loginExpiredDescription": "Twitch rejected the login for {login}. Chat stays disconnected until you sign in again.",
+  "@loginExpiredDescription": {
+    "placeholders": {
+      "login": {
+        "type": "String"
+      }
+    }
+  },
+  "signInAgain": "Sign in",
   "expiresIn": "Expires in {time}",
   "@expiresIn": {
     "placeholders": {

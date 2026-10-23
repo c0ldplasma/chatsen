@@ -34,5 +34,6 @@
 # Repository related files
 !/.gitignore
 !/README.md
+!/CLAUDE.md
 !/LICENSE
 !/crowdin.yml

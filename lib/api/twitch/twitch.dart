@@ -17,6 +17,18 @@ Map<String, Map<String, TwitchBadge>> _badgeSetsFromJson(dynamic json) => {
         },
     };
 
+/// Thrown when Twitch rejects an access token (401 from /oauth2/validate).
+/// Distinct from a generic failure so callers can tell "the login is dead, ask
+/// the user to sign in again" apart from "the network is down, try later".
+class TwitchTokenInvalidException implements Exception {
+  final String message;
+
+  TwitchTokenInvalidException([this.message = 'The access token is no longer valid']);
+
+  @override
+  String toString() => 'TwitchTokenInvalidException: $message';
+}
+
 class Twitch {
   static Future<List<String>> blockedUsers(TokenData tokenData) async {
     try {
@@ -53,6 +65,15 @@ class Twitch {
       },
     );
     final responseJson = json.decode(utf8.decode(response.bodyBytes));
+    // A rejected token answers 401 with {status, message} and no login/client_id,
+    // which used to blow up on the non-nullable `login` further down. Surface it
+    // as a typed error instead so callers can react to an expired login.
+    if (response.statusCode == 401) {
+      throw TwitchTokenInvalidException(responseJson['message'] ?? 'invalid access token');
+    }
+    if (response.statusCode != 200) {
+      throw Exception('Token validation failed (${response.statusCode}): ${responseJson['message']}');
+    }
     return TokenData(
       clientId: responseJson['client_id'],
       login: responseJson['login'],
