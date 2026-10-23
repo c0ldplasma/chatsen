@@ -73,16 +73,20 @@ class UserModalHeader extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              const WidgetSpan(child: SizedBox(width: 16.0)),
-                              WidgetSpan(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.remove_red_eye, color: Theme.of(context).textTheme.bodyMedium!.color, size: Theme.of(context).textTheme.bodyMedium!.fontSize),
-                                    Text(' ${user.profileViewCount}', style: Theme.of(context).textTheme.bodyMedium),
-                                  ],
+                              // Twitch no longer reports profile views, so this is null for every
+                              // channel now. Hide it rather than render "null".
+                              if (user.profileViewCount != null) ...[
+                                const WidgetSpan(child: SizedBox(width: 16.0)),
+                                WidgetSpan(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.remove_red_eye, color: Theme.of(context).textTheme.bodyMedium!.color, size: Theme.of(context).textTheme.bodyMedium!.fontSize),
+                                      Text(' ${user.profileViewCount}', style: Theme.of(context).textTheme.bodyMedium),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
