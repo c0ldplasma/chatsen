@@ -1,4 +1,4 @@
-// import 'package:chatsen/irc/message.dart' as irc;
+// import 'package:coldchat/irc/message.dart' as irc;
 
 import '/tmi/user.dart';
 

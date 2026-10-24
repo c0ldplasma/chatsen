@@ -1,4 +1,4 @@
-import 'package:chatsen/components/tile.dart';
+import 'package:coldchat/components/tile.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 

@@ -1,4 +1,4 @@
-import 'package:chatsen/api/seventv/seventv_cosmetics.dart';
+import 'package:coldchat/api/seventv/seventv_cosmetics.dart';
 import 'package:http/http.dart' as http;
 
 import '../json_isolate.dart';

@@ -1,20 +1,20 @@
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:chatsen/api/twitch/twitch.dart';
-import 'package:chatsen/components/boxlistener.dart';
-import 'package:chatsen/components/tile.dart';
-import 'package:chatsen/data/twitch/search_data.dart';
+import 'package:coldchat/api/twitch/twitch.dart';
+import 'package:coldchat/components/boxlistener.dart';
+import 'package:coldchat/components/tile.dart';
+import 'package:coldchat/data/twitch/search_data.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
 import '/components/modal.dart';
 import '/components/separator.dart';
 import '/components/surface.dart';
 import '/data/twitch/stream_data.dart';
 import '/data/twitch_account.dart';
-import '/modal/chatsen.dart';
+import '/modal/coldchat.dart';
 import '/pages/home.dart';
 import '/tmi/channel/channel_event.dart';
 import '/tmi/client/client.dart';
@@ -142,7 +142,7 @@ class _HomeTabState extends State<HomeTab> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    AppLocalizations.of(context)!.chatsen,
+                    AppLocalizations.of(context)!.appName,
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
@@ -158,7 +158,7 @@ class _HomeTabState extends State<HomeTab> {
                     onPressed: () {
                       Modal.show(
                         context: context,
-                        child: const ChatsenModal(),
+                        child: const ColdChatModal(),
                       );
                     },
                     iconSize: 64.0,

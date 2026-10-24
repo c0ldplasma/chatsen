@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
 import '../../components/surface.dart';
 import '../../data/settings/message_appearance.dart';

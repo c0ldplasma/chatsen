@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:chatsen/api/anonfiles/anonfiles.dart';
-import 'package:chatsen/data/custom_badge.dart';
-import 'package:chatsen/data/inline_url.dart';
-import 'package:chatsen/tmi/channel/messages/channel_message_user.dart';
-import 'package:chatsen/tmi/channel/messages/embeds/file_embed.dart';
-import 'package:chatsen/tmi/channel/messages/embeds/image_embed.dart';
-import 'package:chatsen/tmi/user.dart';
+import 'package:coldchat/api/anonfiles/anonfiles.dart';
+import 'package:coldchat/data/custom_badge.dart';
+import 'package:coldchat/data/inline_url.dart';
+import 'package:coldchat/tmi/channel/messages/channel_message_user.dart';
+import 'package:coldchat/tmi/channel/messages/embeds/file_embed.dart';
+import 'package:coldchat/tmi/channel/messages/embeds/image_embed.dart';
+import 'package:coldchat/tmi/user.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';

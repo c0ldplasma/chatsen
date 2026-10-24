@@ -1,6 +1,5 @@
 {
-  "chatsen": "ColdChat",
-  "catsen": "Catsen",
+  "appName": "ColdChat",
   "loggedInVia": "다음 방식으로 로그인 됨: {provider}",
   "@loggedInVia": {
     "placeholders": {

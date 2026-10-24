@@ -1,6 +1,5 @@
 {
-  "chatsen": "ColdChat",
-  "catsen": "Catsen",
+  "appName": "ColdChat",
   "loggedInVia": "{provider} aracılığıyla giriş yapıldı",
   "@loggedInVia": {
     "placeholders": {

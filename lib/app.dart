@@ -1,7 +1,7 @@
-import 'package:chatsen/data/notifications_cubit.dart';
-import 'package:chatsen/tmi/channel/channel_message.dart';
-import 'package:chatsen/tmi/client/client.dart';
-import 'package:chatsen/tmi/client/client_listener.dart';
+import 'package:coldchat/data/notifications_cubit.dart';
+import 'package:coldchat/tmi/channel/channel_message.dart';
+import 'package:coldchat/tmi/client/client.dart';
+import 'package:coldchat/tmi/client/client_listener.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '/tools/m3parser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
 import 'components/boxlistener.dart';
 import 'data/settings/application_appearance.dart';

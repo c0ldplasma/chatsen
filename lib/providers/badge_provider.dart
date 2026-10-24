@@ -1,4 +1,4 @@
-import 'package:chatsen/data/badge_users.dart';
+import 'package:coldchat/data/badge_users.dart';
 
 import 'provider.dart';
 import '../data/custom_badge.dart';

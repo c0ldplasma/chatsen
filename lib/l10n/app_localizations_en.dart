@@ -10,10 +10,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get chatsen => 'ColdChat';
-
-  @override
-  String get catsen => 'Catsen';
+  String get appName => 'ColdChat';
 
   @override
   String get translationAuthorNames => '';
@@ -443,10 +440,7 @@ class AppLocalizationsEnCa extends AppLocalizationsEn {
   AppLocalizationsEnCa() : super('en_CA');
 
   @override
-  String get chatsen => 'ColdChat';
-
-  @override
-  String get catsen => 'Catsen';
+  String get appName => 'ColdChat';
 
   @override
   String loggedInVia(String provider) {
@@ -767,10 +761,7 @@ class AppLocalizationsEnPt extends AppLocalizationsEn {
   AppLocalizationsEnPt() : super('en_PT');
 
   @override
-  String get chatsen => 'ColdChat';
-
-  @override
-  String get catsen => 'Catsen';
+  String get appName => 'ColdChat';
 
   @override
   String loggedInVia(String provider) {

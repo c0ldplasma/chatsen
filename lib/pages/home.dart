@@ -1,4 +1,4 @@
-import 'package:chatsen/modal/channel.dart';
+import 'package:coldchat/modal/channel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../components/dark_bar.dart';
 import '../components/modal.dart';
-import '../modal/chatsen.dart';
+import '../modal/coldchat.dart';
 import '../tmi/channel/channel.dart';
 import '../tmi/client/client.dart';
 import '../tmi/client/client_channels.dart';
@@ -128,7 +128,7 @@ class _HomePageState extends State<HomePage>
                         onLongPress: () {
                           Modal.show(
                             context: context,
-                            child: const ChatsenModal(),
+                            child: const ColdChatModal(),
                           );
                         },
                         child: const SizedBox(

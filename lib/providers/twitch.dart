@@ -1,4 +1,4 @@
-import 'package:chatsen/providers/badge_provider.dart';
+import 'package:coldchat/providers/badge_provider.dart';
 
 import '../api/twitch/twitch.dart';
 import '../data/twitch/token_data.dart';

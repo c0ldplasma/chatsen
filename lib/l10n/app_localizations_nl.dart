@@ -10,10 +10,7 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
-  String get chatsen => 'ColdChat';
-
-  @override
-  String get catsen => 'Catsen';
+  String get appName => 'ColdChat';
 
   @override
   String get translationAuthorNames => '';

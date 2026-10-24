@@ -16,26 +16,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ["Android", "iOS"] # ["Android", "Windows", "Linux", "macOS", "iOS"]
+        target: ["Android", "iOS"]
         include:
           - target: Android
             os: ubuntu-latest
-          # - target: Windows
-          #   os: windows-latest
-          # - target: Linux
-          #   os: ubuntu-latest
-          # - target: macOS
-          #   os: macos-latest
           - target: iOS
             os: macos-latest
 
     name: ${{matrix.target}}
     runs-on: ${{matrix.os}}
     env:
-      APP_TITLE: Chatsen
-      APP_NAME: chatsen
-      APP_PATH: chatsen
-      APP_ORG: com.chatsen
+      APP_TITLE: ColdChat
+      APP_NAME: coldchat
+      APP_PATH: coldchat
+      APP_ORG: com.plasmari
 
     steps:
       - name: Set up sed
@@ -100,8 +94,8 @@ jobs:
           $sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' ./android/app/build.gradle.kts
           # Force every Android plugin subproject (e.g. file_picker, still on 34) to compile against SDK 36 so AAR metadata checks pass.
           $sed -i '/project.layout.buildDirectory.value(newSubprojectBuildDir)/a\    afterEvaluate {\n        val android = extensions.findByName("android")\n        if (android != null) {\n            try { android.javaClass.getMethod("setCompileSdkVersion", Int::class.javaPrimitiveType).invoke(android, 36) } catch (e: Exception) {}\n        }\n    }' ./android/build.gradle.kts
-          # $sed -i "/io.flutter.embedding.android.FlutterActivity/a import android.os.Bundle\nimport android.os.Build\nimport androidx.annotation.NonNull\nimport io.flutter.embedding.android.FlutterActivityLaunchConfigs.BackgroundMode.transparent\nimport io.flutter.embedding.engine.FlutterEngine\nimport io.flutter.plugins.GeneratedPluginRegistrant" android/app/src/main/kotlin/com/chatsen/chatsen/MainActivity.kt
-          # $sed -i "/FlutterActivity()/a \ \ \ \ override fun onCreate(savedInstanceState: Bundle?) {\n\ \ \ \ \ \ \ \ super.onCreate(savedInstanceState)\n\ \ \ \ \ \ \ \ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {\n\ \ \ \ \ \ \ \ \ \ \ \ window.setDecorFitsSystemWindows(false)\n\ \ \ \ \ \ \ \ }\n\ \ \ \ }" android/app/src/main/kotlin/com/chatsen/chatsen/MainActivity.kt
+          # $sed -i "/io.flutter.embedding.android.FlutterActivity/a import android.os.Bundle\nimport android.os.Build\nimport androidx.annotation.NonNull\nimport io.flutter.embedding.android.FlutterActivityLaunchConfigs.BackgroundMode.transparent\nimport io.flutter.embedding.engine.FlutterEngine\nimport io.flutter.plugins.GeneratedPluginRegistrant" android/app/src/main/kotlin/com/plasmari/coldchat/MainActivity.kt
+          # $sed -i "/FlutterActivity()/a \ \ \ \ override fun onCreate(savedInstanceState: Bundle?) {\n\ \ \ \ \ \ \ \ super.onCreate(savedInstanceState)\n\ \ \ \ \ \ \ \ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {\n\ \ \ \ \ \ \ \ \ \ \ \ window.setDecorFitsSystemWindows(false)\n\ \ \ \ \ \ \ \ }\n\ \ \ \ }" android/app/src/main/kotlin/com/plasmari/coldchat/MainActivity.kt
 
       - name: Applying iOS project patches
         if: matrix.target == 'iOS'
@@ -123,11 +117,6 @@ jobs:
         if: matrix.target == 'iOS'
         working-directory: ${{env.APP_PATH}}
         run: flutter build ios --no-codesign
-
-      - name: Building ${{env.APP_TITLE}} for Windows
-        if: matrix.target == 'Windows'
-        working-directory: ${{env.APP_PATH}}
-        run: flutter build windows -v
 
       - name: Uploading Android artifact
         uses: actions/upload-artifact@v4

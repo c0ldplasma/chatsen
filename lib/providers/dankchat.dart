@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:chatsen/providers/badge_provider.dart';
-import 'package:chatsen/providers/provider.dart';
+import 'package:coldchat/providers/badge_provider.dart';
+import 'package:coldchat/providers/provider.dart';
 
 import '../api/dankchat/dankchat.dart';
 import '../data/custom_badge.dart';

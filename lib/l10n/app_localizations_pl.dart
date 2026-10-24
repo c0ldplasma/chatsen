@@ -10,10 +10,7 @@ class AppLocalizationsPl extends AppLocalizations {
   AppLocalizationsPl([String locale = 'pl']) : super(locale);
 
   @override
-  String get chatsen => 'ColdChat';
-
-  @override
-  String get catsen => 'Catsen';
+  String get appName => 'ColdChat';
 
   @override
   String get translationAuthorNames => '';

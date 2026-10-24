@@ -1,4 +1,4 @@
-import 'package:chatsen/api/betterttv/betterttv_badge.dart';
+import 'package:coldchat/api/betterttv/betterttv_badge.dart';
 import 'package:http/http.dart' as http;
 
 import '../json_isolate.dart';

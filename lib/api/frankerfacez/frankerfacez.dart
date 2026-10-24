@@ -1,4 +1,4 @@
-import 'package:chatsen/api/frankerfacez/frankerfacez_badges.dart';
+import 'package:coldchat/api/frankerfacez/frankerfacez_badges.dart';
 import 'package:http/http.dart' as http;
 
 import '../json_isolate.dart';

@@ -1,4 +1,4 @@
-import 'package:chatsen/api/seventv/seventv_badge.dart';
+import 'package:coldchat/api/seventv/seventv_badge.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'seventv_cosmetics.g.dart';

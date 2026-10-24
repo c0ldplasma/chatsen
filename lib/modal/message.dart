@@ -1,8 +1,8 @@
-import 'package:chatsen/api/twitch/twitch.dart';
-import 'package:chatsen/widgets/channel_view.dart';
+import 'package:coldchat/api/twitch/twitch.dart';
+import 'package:coldchat/widgets/channel_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
 import '../components/tile.dart';
 import '../tmi/channel/messages/channel_message_chat.dart';
