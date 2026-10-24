@@ -24,7 +24,6 @@ import '../channel/messages/channel_message_ban.dart';
 import '../channel/messages/channel_message_notice.dart';
 import '../emotes.dart';
 import '../user_badges.dart';
-import '/api/betterttv/betterttv_socket.dart';
 import '/providers/betterttv.dart';
 import '/api/recentmessages/recentmessages.dart';
 import '/tmi/channel/channel_event.dart';
@@ -70,14 +69,6 @@ class Client {
   Emotes emojis = Emotes();
   UserBadges globalUserBadges = UserBadges();
 
-  // BetterTTV Pro badges by Twitch user id. They only arrive when a Pro user
-  // opens a channel we're in, so they're kept on disk to show up on history
-  // and on later launches too.
-  final Map<String, CustomBadge> bttvProBadges = {};
-  late final BetterTTVSocket bttvSocket = BetterTTVSocket(onLookupUser: _onBttvLookupUser);
-  Timer? _saveBttvProBadgesTimer;
-  static const int _maxBttvProBadges = 5000;
-
   Client({
     TwitchAccount? twitchAccount,
     required Box channelsBox,
@@ -91,7 +82,6 @@ class Client {
     if (cacheBox != null) {
       cache = EmoteBadgeCache(box: cacheBox, providers: providers);
       _hydrateGlobalsFromCache();
-      cache!.loadBttvProBadges().forEach((userId, url) => bttvProBadges[userId] = _bttvProBadge(url));
     }
 
     channels = ClientChannels(
@@ -191,35 +181,6 @@ class Client {
     globalUserBadges.change(merged);
     cache?.saveUserBadges(EmoteBadgeCache.globalUserBadgesKey, merged);
     if (changed) _rebuildChannelMessages();
-  }
-
-  CustomBadge _bttvProBadge(String url) => CustomBadge(
-        id: 'bttv-pro',
-        name: 'BetterTTV Pro',
-        mipmap: [url],
-        provider: providers.whereType<BetterTTVProvider>().first,
-      );
-
-  void _onBttvLookupUser(BetterTTVProBadge lookup) {
-    final url = lookup.url;
-    final previous = bttvProBadges.remove(lookup.userId);
-    if (url != null) {
-      // Re-inserting keeps the map ordered by last sighting, so the cap below
-      // drops the users seen longest ago.
-      bttvProBadges[lookup.userId] = previous?.mipmap.first == url ? previous! : _bttvProBadge(url);
-      while (bttvProBadges.length > _maxBttvProBadges) {
-        bttvProBadges.remove(bttvProBadges.keys.first);
-      }
-    }
-    if (previous?.mipmap.first != url) {
-      for (final channel in channels.state) {
-        channel.rebuildMessagesFrom(lookup.userId);
-      }
-    }
-    _saveBttvProBadgesTimer?.cancel();
-    _saveBttvProBadgesTimer = Timer(const Duration(seconds: 5), () {
-      cache?.saveBttvProBadges({for (final entry in bttvProBadges.entries) entry.key: entry.value.mipmap.first});
-    });
   }
 
   static bool _sameIds(Iterable<String> a, Iterable<String> b) => const IterableEquality<String>().equals(a, b);
@@ -375,7 +336,6 @@ class Client {
     final results = await Future.wait([receiver.probeAlive(), transmitter.probeAlive()]);
     final receiverAlive = results[0];
     final transmitterAlive = results[1];
-    bttvSocket.reconnect();
     if (receiverAlive && transmitterAlive) return; // connection still live — nothing to do
 
     if (!receiverAlive) receiver.forceReconnect();
@@ -573,7 +533,6 @@ class Client {
         }
 
         channel.id = event.tags['room-id'];
-        if (channel.id != null) bttvSocket.join(channel.id!);
 
         // Paint cached history first using the emotes already hydrated from
         // disk at channel construction, so it shows immediately instead of
