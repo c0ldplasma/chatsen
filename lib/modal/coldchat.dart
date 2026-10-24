@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsen/modal/components/modal_header.dart';
-import 'package:chatsen/modal/settings.dart';
+import 'package:coldchat/modal/components/modal_header.dart';
+import 'package:coldchat/modal/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../components/tile.dart';
@@ -16,8 +16,8 @@ import 'login_flow.dart';
 import 'twitch_token_input.dart';
 import 'twitch_account.dart';
 
-class ChatsenModal extends StatelessWidget {
-  const ChatsenModal({super.key});
+class ColdChatModal extends StatelessWidget {
+  const ColdChatModal({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class ChatsenModal extends StatelessWidget {
               shrinkWrap: true,
               children: [
                 ModalHeader(
-                  title: AppLocalizations.of(context)!.chatsen,
+                  title: AppLocalizations.of(context)!.appName,
                   trailing: Tooltip(
                     message: AppLocalizations.of(context)!.settings,
                     child: InkWell(

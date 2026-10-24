@@ -10,10 +10,7 @@ class AppLocalizationsCa extends AppLocalizations {
   AppLocalizationsCa([String locale = 'ca']) : super(locale);
 
   @override
-  String get chatsen => 'ColdChat';
-
-  @override
-  String get catsen => 'Catsen';
+  String get appName => 'ColdChat';
 
   @override
   String get translationAuthorNames => '';

@@ -80,7 +80,7 @@ abstract class UploadHost {
       onProgress: onProgress,
     );
     // Some hosts (notably 0x0.st) reject the default Dart user agent outright.
-    request.headers['User-Agent'] = 'Chatsen/2.0 (https://github.com/Chatsen/Chatsen)';
+    request.headers['User-Agent'] = 'ColdChat (https://github.com/c0ldplasma/coldchat)';
     // Not MultipartFile.fromBytes: that wraps the whole file in a single stream
     // event, so the progress counter jumped straight to 100% and the real
     // transfer happened under "processing". Small chunks let dart:io's socket

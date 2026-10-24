@@ -1,6 +1,5 @@
 {
-  "chatsen": "ColdChat",
-  "catsen": "Catsen",
+  "appName": "ColdChat",
   "translationAuthorNames": "",
   "@translationAuthorNames": {
     "description": "Translators should put their desired names to be displayed in the application credits, separated by semicolons here. Example: forsen;nymn;randomuser123 (one per contributor)"

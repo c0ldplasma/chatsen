@@ -82,9 +82,9 @@ class EmoteBadgeCache {
 
   Emote? _emoteFromJson(Map<String, dynamic> m) {
     final provider = _providerByName(m['provider'] as String?);
-    // Also drops emotes cached from a provider that no longer serves emotes
-    // (Chatsen's own emotes were removed), instead of showing them until the
-    // next refresh overwrites the cache.
+    // Also drops emotes cached from a provider that no longer serves emotes,
+    // or no longer exists, instead of showing them until the next refresh
+    // overwrites the cache.
     if (provider is! EmoteProvider) return null;
     return Emote(
       id: m['id'] as String,

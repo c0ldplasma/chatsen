@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-ColdChat — a Flutter Twitch chat client, forked from [chatsen/chatsen](https://github.com/chatsen/chatsen).
+ColdChat — a Flutter Twitch chat client, [c0ldplasma/coldchat](https://github.com/c0ldplasma/coldchat). The Dart package
+is `coldchat`.
 Ships as `com.plasmari.coldchat` (Apple team `RA25PYVUTF`), which is **not** the same app as upstream.
 
 ColdChat supports **Android and iOS only**. Desktop and web support was removed; don't recreate the
@@ -48,7 +49,7 @@ A release is one commit on `main` that sets the new version, followed by a tag a
 # pubspec.yaml:  version: 2.2.0+125
 git commit -m "Release 2.2.0 (125)" pubspec.yaml
 git tag v2.2.0+125 && git push origin main v2.2.0+125
-gh release create v2.2.0+125 --repo c0ldplasma/chatsen --generate-notes --title "2.2.0 (125)"
+gh release create v2.2.0+125 --repo c0ldplasma/coldchat --generate-notes --title "2.2.0 (125)"
 ```
 
 Then build and upload from that commit (TestFlight and APK below). `--generate-notes` builds the changelog
@@ -176,12 +177,17 @@ uninstall, which wipes app data. Wiring up a real release keystore is still an o
 
 ## Repo gotchas
 
-- **`ios/fastlane/` belongs to upstream, not to this fork.** `Appfile` names `com.chatsen.chatsen`,
-  upstream's Apple ID, team `6GNA923MZR`, and a `match` repo at `github.com/chatsen/fastlane`. Running
-  `fastlane beta` would target upstream's App Store Connect app. Use the `flutter build ipa` + `altool`
-  flow above instead. `ios/ExportOptions.plist` *is* ours.
-- Remotes: `origin` is the fork `c0ldplasma/chatsen` (push here, open PRs against its `main`), `upstream`
-  is `chatsen/chatsen`. `origin` is public — keep Apple IDs, device UDIDs, passwords and API keys out of committed files.
+- `origin` is `c0ldplasma/coldchat` (push here, open PRs against its `main`). It is public — keep Apple IDs,
+  device UDIDs, passwords and API keys out of committed files.
+- ColdChat talks only to Twitch and the emote/badge/upload services it names in `lib/api/`. User cards and the
+  channel header come from Helix (`Twitch.profile`, needs a login); the chatter list and `@` autocomplete use
+  `Channel.recentChatters`, the people who wrote in the loaded chat, because Twitch only gives the full viewer
+  list to the channel's moderators.
+- `*.g.dart` files (json_serializable, Hive adapters) are **generated and not tracked**. After a fresh checkout or
+  after changing an annotated model, run `dart run build_runner build --delete-conflicting-outputs`.
+- Twitch login uses ColdChat's own **public** Twitch app (`twitchClientId` in `lib/modal/oauth_webview.dart`),
+  with the redirect `https://localhost/` exactly as registered in the dev.twitch.tv console, trailing slash
+  included. The web view intercepts that redirect, so no page is loaded.
 - The iOS project uses **Swift Package Manager only**; CocoaPods was removed (no `Podfile`). Don't run
   `pod install`. Note that `ios/` and `android/` are untracked (see `.gitignore`), so changes there are local.
 - `build/` is currently untracked but present in the working tree; don't commit it.

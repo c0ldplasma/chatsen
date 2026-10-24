@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsen/components/surface.dart';
-import 'package:chatsen/modal/notifications.dart';
-import 'package:chatsen/tools/m3parser.dart';
+import 'package:coldchat/components/surface.dart';
+import 'package:coldchat/modal/notifications.dart';
+import 'package:coldchat/tools/m3parser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../data/notifications_cubit.dart';
 import '/components/modal.dart';
-import '../modal/chatsen.dart';
+import '../modal/coldchat.dart';
 import '/components/boxlistener.dart';
 
 class AvatarButton extends StatefulWidget {
@@ -101,7 +101,7 @@ class _AvatarButtonState extends State<AvatarButton> {
                                   onTap: () async {
                                     Modal.show(
                                       context: context,
-                                      child: const ChatsenModal(),
+                                      child: const ColdChatModal(),
                                     );
                                   },
                                   child: Padding(

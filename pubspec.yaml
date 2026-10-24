@@ -1,5 +1,5 @@
-name: chatsen
-description: 3rd party client for Twitch
+name: coldchat
+description: ColdChat, a third-party Twitch chat client for Android and iOS
 publish_to: 'none'
 version: 2.1.0+124
 
@@ -39,7 +39,6 @@ dependencies:
   cached_network_image: ^3.3.1
   webview_flutter_android: ^4.14.1
   webview_flutter_wkwebview: ^3.16.0
-  shared_preferences: ^2.5.4
   path_provider: ^2.1.4
   image_picker: ^1.2.4
   package_info_plus: ^10.2.2

@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:chatsen/api/twitch/twitch_badge.dart';
-import 'package:chatsen/api/twitch/twitch_emote.dart';
+import 'package:coldchat/api/twitch/twitch_badge.dart';
+import 'package:coldchat/api/twitch/twitch_emote.dart';
 import 'package:http/http.dart' as http;
 
 import '../json_isolate.dart';
@@ -9,6 +9,7 @@ import '/data/twitch/stream_data.dart';
 import '/data/twitch/token_data.dart';
 import '/data/twitch/user_data.dart';
 import 'twitch_ban_response_data.dart';
+import 'twitch_profile.dart';
 
 Map<String, Map<String, TwitchBadge>> _badgeSetsFromJson(dynamic json) => {
       for (final badgeSet in json['data'])
@@ -124,6 +125,70 @@ class Twitch {
     );
     if (response.statusCode != 200) throw 'Twitch badges request failed with HTTP ${response.statusCode}';
     return decodeJsonInIsolate(response.bodyBytes, _badgeSetsFromJson);
+  }
+
+  static Future<dynamic> _helixGet(TokenData tokenData, String pathAndQuery) async {
+    final response = await http.get(
+      Uri.parse('https://api.twitch.tv/helix/$pathAndQuery'),
+      headers: {
+        'Authorization': 'Bearer ${tokenData.accessToken}',
+        'Client-Id': '${tokenData.clientId}',
+      },
+    );
+    if (response.statusCode != 200) throw 'Twitch request $pathAndQuery failed with HTTP ${response.statusCode}';
+    return json.decode(utf8.decode(response.bodyBytes));
+  }
+
+  /// Up to 100 users per request; logins that don't exist are left out.
+  static Future<List<TwitchUser>> usersByLogin(TokenData tokenData, List<String> logins) async {
+    final users = <TwitchUser>[];
+    for (var i = 0; i < logins.length; i += 100) {
+      final batch = logins.skip(i).take(100).map((login) => 'login=${Uri.encodeQueryComponent(login)}').join('&');
+      final responseJson = await _helixGet(tokenData, 'users?$batch');
+      users.addAll([for (final data in responseJson['data']) TwitchUser.fromJson(data)]);
+    }
+    return users;
+  }
+
+  /// Everything the user card and the channel header show, or null when the
+  /// login doesn't exist. The follower total is returned for any user token;
+  /// only the follower list itself needs moderator rights.
+  static Future<TwitchProfile?> profile(TokenData tokenData, String login) async {
+    final users = await usersByLogin(tokenData, [login]);
+    if (users.isEmpty) return null;
+    final user = users.first;
+
+    final results = await Future.wait([
+      _helixGet(tokenData, 'streams?user_id=${user.id}'),
+      _helixGet(tokenData, 'channels/followers?broadcaster_id=${user.id}&first=1').then<dynamic>((json) => json, onError: (_) => null),
+    ]);
+    final streams = results[0]['data'] as List;
+    final followerCount = results[1]?['total'] as int?;
+
+    TwitchLiveStream? stream;
+    if (streams.isNotEmpty) {
+      final data = streams.first;
+      final gameId = data['game_id'] as String?;
+      String? boxArtUrl;
+      if (gameId != null && gameId.isNotEmpty) {
+        try {
+          final games = (await _helixGet(tokenData, 'games?id=$gameId'))['data'] as List;
+          if (games.isNotEmpty) boxArtUrl = (games.first['box_art_url'] as String).replaceAll('{width}', '144').replaceAll('{height}', '192');
+        } catch (_) {
+          // The cover is decoration; the card works without it.
+        }
+      }
+      stream = TwitchLiveStream(
+        title: data['title'] as String,
+        gameName: data['game_name'] as String,
+        gameBoxArtUrl: boxArtUrl,
+        thumbnailUrl: data['thumbnail_url'] as String,
+        viewerCount: data['viewer_count'] as int,
+        startedAt: DateTime.parse(data['started_at'] as String),
+      );
+    }
+
+    return TwitchProfile(user: user, followerCount: followerCount, stream: stream);
   }
 
   static Future<List<StreamData>> streams(

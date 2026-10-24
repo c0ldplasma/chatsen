@@ -142,17 +142,11 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
-  /// No description provided for @chatsen.
+  /// No description provided for @appName.
   ///
   /// In en, this message translates to:
   /// **'ColdChat'**
-  String get chatsen;
-
-  /// No description provided for @catsen.
-  ///
-  /// In en, this message translates to:
-  /// **'Catsen'**
-  String get catsen;
+  String get appName;
 
   /// Translators should put their desired names to be displayed in the application credits, separated by semicolons here. Example: forsen;nymn;randomuser123 (one per contributor)
   ///

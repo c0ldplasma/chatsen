@@ -1,16 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsen/data/inline_url.dart';
-import 'package:chatsen/modal/emote.dart';
-import 'package:chatsen/modal/user.dart';
-import 'package:chatsen/tmi/channel/messages/channel_message_embeds.dart';
-import 'package:chatsen/tmi/channel/messages/channel_message_state_change.dart';
+import 'package:coldchat/data/inline_url.dart';
+import 'package:coldchat/modal/emote.dart';
+import 'package:coldchat/modal/user.dart';
+import 'package:coldchat/tmi/channel/messages/channel_message_embeds.dart';
+import 'package:coldchat/tmi/channel/messages/channel_message_state_change.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
 import '../tmi/channel/messages/channel_message_event.dart';
 import '/components/modal.dart';

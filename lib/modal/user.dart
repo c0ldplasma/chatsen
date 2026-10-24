@@ -1,39 +1,57 @@
 import 'dart:developer';
 
-import 'package:chatsen/api/twitch/twitch.dart';
+import 'package:coldchat/api/twitch/twitch.dart';
 import 'package:flutter/material.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
-import '../api/chatsen/chatsen.dart';
-import '../api/chatsen/chatsen_user.dart';
+import 'package:provider/provider.dart';
+
+import '../api/twitch/twitch_profile.dart';
+import '../tmi/client/client.dart';
 import '../tmi/channel/channel.dart';
 import '../tmi/channel/messages/channel_message_chat.dart';
 import '../widgets/chat_view.dart';
 import 'components/user_modal_header.dart';
 
-// ignore: must_be_immutable
-class UserModal extends StatelessWidget {
-  late Future<ChatsenUser> future;
+class UserModal extends StatefulWidget {
+  final String login;
   final Channel? channel;
 
-  UserModal({
+  const UserModal({
     super.key,
-    required String login,
+    required this.login,
     this.channel,
-  }) {
-    future = Chatsen.user(login);
+  });
+
+  @override
+  State<UserModal> createState() => _UserModalState();
+}
+
+class _UserModalState extends State<UserModal> {
+  late final Future<TwitchProfile?> future;
+
+  Channel? get channel => widget.channel;
+
+  @override
+  void initState() {
+    super.initState();
+    // Profiles come from Helix, which needs a login. Without one the panel
+    // still shows the user's messages.
+    final tokenData = (channel?.client ?? context.read<Client>()).apiTokenData;
+    future = tokenData == null ? Future.value(null) : Twitch.profile(tokenData, widget.login).catchError((_) => null);
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<ChatsenUser>(
+  Widget build(BuildContext context) => FutureBuilder<TwitchProfile?>(
         future: future,
-        builder: (BuildContext context, AsyncSnapshot<ChatsenUser> snapshot) {
-          if (!snapshot.hasData) return Container();
+        builder: (BuildContext context, AsyncSnapshot<TwitchProfile?> snapshot) {
+          final loading = snapshot.connectionState != ConnectionState.done;
+          final profile = snapshot.data;
           return ListView(
             shrinkWrap: true,
             children: [
-              UserModalHeader(user: snapshot.data!),
-              if (channel != null)
+              if (loading || profile != null) UserModalHeader(profile: profile, name: widget.login),
+              if (channel != null && profile != null)
                 Material(
                   color: Theme.of(context).colorScheme.secondaryContainer,
                   child: Row(
@@ -51,7 +69,7 @@ class UserModal extends StatelessWidget {
                                 channel!.client.transmitter.twitchAccount!.tokenData,
                                 broadcasterId: channel!.id!,
                                 moderatorId: channel!.client.transmitter.twitchAccount!.tokenData.userId!,
-                                userId: snapshot.data!.id,
+                                userId: profile.user.id,
                               );
                             } catch (e) {
                               log('$e');
@@ -89,7 +107,7 @@ class UserModal extends StatelessWidget {
                                             channel!.client.transmitter.twitchAccount!.tokenData,
                                             broadcasterId: channel!.id!,
                                             moderatorId: channel!.client.transmitter.twitchAccount!.tokenData.userId!,
-                                            userId: snapshot.data!.id,
+                                            userId: profile.user.id,
                                             duration: time.value.inSeconds,
                                           );
                                         } catch (e) {
@@ -118,7 +136,7 @@ class UserModal extends StatelessWidget {
                                 channel!.client.transmitter.twitchAccount!.tokenData,
                                 broadcasterId: channel!.id!,
                                 moderatorId: channel!.client.transmitter.twitchAccount!.tokenData.userId!,
-                                userId: snapshot.data!.id,
+                                userId: profile.user.id,
                               );
                             } catch (e) {
                               log('$e');
@@ -140,7 +158,7 @@ class UserModal extends StatelessWidget {
                     filter: (message) {
                       if (message is! ChannelMessageChat) return false;
                       // TODO: change when proper user storage is done
-                      return message.message.prefix?.split('!').first == snapshot.data!.login;
+                      return message.message.prefix?.split('!').first == widget.login;
                     },
                   ),
                 ),

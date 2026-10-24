@@ -3,11 +3,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsen/widgets/chat/emote_picker.dart';
-import 'package:chatsen/widgets/chat_message.dart';
+import 'package:coldchat/widgets/chat/emote_picker.dart';
+import 'package:coldchat/widgets/chat_message.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -284,7 +284,7 @@ class ChannelViewState extends State<ChannelView> {
       ...matchingEmotes.whereNot(startsWithSearch),
     ];
 
-    final chatters = widget.channel.channelChatters.state?.getAllChatters() ?? [];
+    final chatters = widget.channel.recentChatters;
     final matchingChatters = chatters.where((chatter) {
       return (chatSettings.userAutocompletionWithAt ? currentSearch.startsWith('@') : true) && '@${chatter.login}'.toLowerCase().contains(currentSearch);
     });
@@ -293,9 +293,12 @@ class ChannelViewState extends State<ChannelView> {
       for (final user in matchingChatters)
         AutocompletionItem(
           type: AutocompletionType.user,
-          prefix: CachedNetworkImage(imageUrl: user.profileImageURL, width: 24.0, height: 24.0),
-          shortened: CachedNetworkImage(imageUrl: user.profileImageURL, width: 24.0, height: 24.0),
-          title: user.displayName,
+          prefix: const Icon(Icons.person_outline_rounded),
+          shortened: Text(
+            '@${user.displayName ?? user.login}',
+            style: TextStyle(color: user.color, fontWeight: FontWeight.bold),
+          ),
+          title: user.displayName ?? user.login!,
           subtitle: user.login,
           onTap: () {
             final splits = textEditingController.text.split(' ');

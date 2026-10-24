@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
-import 'package:chatsen/api/twitch/twitch.dart';
-import 'package:chatsen/providers/dankchat.dart';
-import 'package:chatsen/providers/emojis.dart';
-import 'package:chatsen/providers/twitch.dart';
-import 'package:chatsen/tmi/badges.dart';
-import 'package:chatsen/tmi/channel/channel_message.dart';
-import 'package:chatsen/tmi/client/client_listener.dart';
+import 'package:coldchat/api/twitch/twitch.dart';
+import 'package:coldchat/providers/dankchat.dart';
+import 'package:coldchat/providers/emojis.dart';
+import 'package:coldchat/providers/twitch.dart';
+import 'package:coldchat/tmi/badges.dart';
+import 'package:coldchat/tmi/channel/channel_message.dart';
+import 'package:coldchat/tmi/client/client_listener.dart';
 import 'package:collection/collection.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -16,7 +16,6 @@ import '../../data/custom_badge.dart';
 import '../../data/badge_users.dart';
 import '../../data/emote.dart';
 import '../../providers/badge_provider.dart';
-import '../../providers/chatsen.dart';
 import '../../providers/emote_provider.dart';
 import '../cache.dart';
 import '../channel/channel.dart';
@@ -31,6 +30,7 @@ import '/tmi/channel/channel_event.dart';
 import '/tmi/channel/channel_state.dart';
 import '/tmi/connection/connection_state.dart';
 import '/data/twitch_account.dart';
+import '/data/twitch/token_data.dart';
 import '/tmi/connection/connection.dart';
 import '/tmi/connection/connection_event.dart';
 import '/irc/message.dart' as irc;
@@ -49,8 +49,10 @@ class Client {
   // The account whose token is used for Twitch API requests such as badges.
   TwitchAccount? _apiAccount;
 
+  /// The token for Helix requests, or null while browsing anonymously.
+  TokenData? get apiTokenData => _apiAccount?.tokenData.accessToken == null ? null : _apiAccount!.tokenData;
+
   late final List<Provider> providers = [
-    ChatsenProvider(),
     SevenTVProvider(),
     BetterTTVProvider(),
     FrankerFaceZProvider(),

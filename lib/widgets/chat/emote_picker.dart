@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sliver_tools/sliver_tools.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
 import 'package:http/http.dart' as http;
 

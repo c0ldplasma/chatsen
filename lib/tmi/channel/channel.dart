@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
-import 'package:chatsen/tmi/channel/channel_chatters.dart';
 
-import '/api/chatsen/chatsen.dart';
+import '/api/twitch/twitch.dart';
 import '/data/custom_badge.dart';
 import '/data/emote.dart';
 import '../client/client.dart';
@@ -20,6 +19,7 @@ import '/providers/emojis.dart';
 import '/tmi/badges.dart';
 import '/tmi/channel/channel_info.dart';
 import 'messages/channel_message_chat.dart';
+import '/tmi/user.dart';
 
 class Channel extends Bloc<ChannelEvent, ChannelState> {
   Client client;
@@ -35,7 +35,6 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   Emotes channelEmotes = Emotes();
   Badges channelBadges = Badges();
   ChannelInfo channelInfo = ChannelInfo();
-  ChannelChatters channelChatters = ChannelChatters();
 
   // O(1) lookup maps for message building, rebuilt lazily and invalidated when
   // the underlying emote/badge sets change. Avoids concatenating the channel +
@@ -213,7 +212,6 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     final emotesFuture = refreshEmotes();
     final badgesFuture = refreshBadges();
     final refreshChannelFuture = refreshChannelUser();
-    final refreshChattersFuture = refreshChannelChatters();
 
     await Future.wait([emotesFuture, badgesFuture]);
 
@@ -221,7 +219,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
       await rebuildMessages();
     }
 
-    await Future.wait([refreshChannelFuture, refreshChattersFuture]);
+    await refreshChannelFuture;
   }
 
   String _emoteBadgeSignature() {
@@ -311,18 +309,29 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   }
 
   Future<void> refreshChannelUser() async {
+    final tokenData = client.apiTokenData;
+    if (tokenData == null) return;
     try {
-      channelInfo.emit(await Chatsen.user(name.replaceFirst('#', '')));
+      channelInfo.emit(await Twitch.profile(tokenData, name.replaceFirst('#', '')));
     } catch (e) {
-      log('Couldn\'t get channel info for $name');
+      log('Couldn\'t get channel info for $name: $e');
     }
   }
 
-  Future<void> refreshChannelChatters() async {
-    try {
-      channelChatters.emit((await Chatsen.userWithViewers(name.replaceFirst('#', ''))).channel?.chatters);
-    } catch (e) {
-      log('Couldn\'t get channel chatters for $name');
+  /// Everyone who wrote in the loaded chat, most recent first. Twitch only
+  /// gives the full viewer list to the channel's moderators, so the chatter
+  /// list and @-autocomplete use the people actually talking.
+  List<User> get recentChatters {
+    final seen = <String>{};
+    final chatters = <User>[];
+    final messages = channelMessages.state;
+    for (var i = messages.length - 1; i >= 0; i--) {
+      final message = messages[i];
+      if (message is! ChannelMessageChat) continue;
+      final login = message.user.login;
+      if (login == null || !seen.add(login)) continue;
+      chatters.add(message.user);
     }
+    return chatters;
   }
 }

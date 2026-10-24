@@ -10,10 +10,7 @@ class AppLocalizationsHr extends AppLocalizations {
   AppLocalizationsHr([String locale = 'hr']) : super(locale);
 
   @override
-  String get chatsen => 'ColdChat';
-
-  @override
-  String get catsen => 'Catsen';
+  String get appName => 'ColdChat';
 
   @override
   String get translationAuthorNames => '';

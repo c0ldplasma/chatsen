@@ -1,16 +1,24 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsen/modal/components/modal_header.dart';
+import 'package:coldchat/modal/components/modal_header.dart';
 import 'package:flutter/material.dart';
 
-import '../../api/chatsen/chatsen_user.dart';
+import '../../api/twitch/twitch_profile.dart';
 
 class UserModalHeader extends StatelessWidget {
-  final ChatsenUser user;
+  /// Null while loading: the header then keeps its size with a placeholder,
+  /// so the sheet doesn't jump when the profile arrives.
+  final TwitchProfile? profile;
+
+  /// Shown until [profile] is there.
+  final String name;
 
   const UserModalHeader({
     super.key,
-    required this.user,
+    required this.profile,
+    required this.name,
   });
+
+  TwitchUser? get user => profile?.user;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -18,12 +26,13 @@ class UserModalHeader extends StatelessWidget {
         children: [
           Stack(
             children: [
-              Positioned.fill(
-                child: Ink.image(
-                  image: CachedNetworkImageProvider(user.bannerImageURL ?? user.offlineImageURL ?? user.profileImageURL),
-                  fit: BoxFit.cover,
+              if (user != null)
+                Positioned.fill(
+                  child: Ink.image(
+                    image: CachedNetworkImageProvider(user!.offlineImageUrl ?? user!.profileImageUrl),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
               Positioned.fill(
                 child: Container(
                   color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.75),
@@ -43,50 +52,36 @@ class UserModalHeader extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8.0),
                           clipBehavior: Clip.antiAlias,
                           elevation: 8.0,
-                          child: Ink.image(
-                            image: CachedNetworkImageProvider(user.profileImageURL),
-                            width: 64.0,
-                            height: 64.0,
-                            child: InkWell(
-                              onTap: () {},
-                            ),
-                          ),
+                          child: user == null
+                              ? const SizedBox(width: 64.0, height: 64.0)
+                              : Ink.image(
+                                  image: CachedNetworkImageProvider(user!.profileImageUrl),
+                                  width: 64.0,
+                                  height: 64.0,
+                                  child: InkWell(
+                                    onTap: () {},
+                                  ),
+                                ),
                         ),
                         const SizedBox(height: 8.0),
                         SelectableText.rich(
                           TextSpan(
                             children: [
-                              TextSpan(text: user.displayName, style: Theme.of(context).textTheme.titleLarge),
-                              TextSpan(text: '#${user.id}', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75))),
+                              TextSpan(text: user?.displayName ?? name, style: Theme.of(context).textTheme.titleLarge),
+                              if (user != null)
+                                TextSpan(text: '#${user!.id}', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75))),
                             ],
                           ),
                         ),
-                        SelectableText.rich(
-                          TextSpan(
+                        // Always laid out, so the height doesn't change once the
+                        // count arrives.
+                        Opacity(
+                          opacity: profile?.followerCount == null ? 0.0 : 1.0,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              WidgetSpan(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.people_alt, color: Theme.of(context).textTheme.bodyMedium!.color, size: Theme.of(context).textTheme.bodyMedium!.fontSize),
-                                    Text(' ${user.followers.totalCount}', style: Theme.of(context).textTheme.bodyMedium),
-                                  ],
-                                ),
-                              ),
-                              // Twitch no longer reports profile views, so this is null for every
-                              // channel now. Hide it rather than render "null".
-                              if (user.profileViewCount != null) ...[
-                                const WidgetSpan(child: SizedBox(width: 16.0)),
-                                WidgetSpan(
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.remove_red_eye, color: Theme.of(context).textTheme.bodyMedium!.color, size: Theme.of(context).textTheme.bodyMedium!.fontSize),
-                                      Text(' ${user.profileViewCount}', style: Theme.of(context).textTheme.bodyMedium),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                              Icon(Icons.people_alt, color: Theme.of(context).textTheme.bodyMedium!.color, size: Theme.of(context).textTheme.bodyMedium!.fontSize),
+                              Text(' ${profile?.followerCount ?? 0}', style: Theme.of(context).textTheme.bodyMedium),
                             ],
                           ),
                         ),
@@ -98,12 +93,12 @@ class UserModalHeader extends StatelessWidget {
               const ModalHeader(),
             ],
           ),
-          if (user.stream != null)
+          if (profile?.stream != null)
             Stack(
               children: [
                 Positioned.fill(
                   child: Ink.image(
-                    image: CachedNetworkImageProvider(user.stream!.previewImageURL.replaceAll('{width}', '1920').replaceAll('{height}', '1080')),
+                    image: CachedNetworkImageProvider(profile!.stream!.thumbnailUrl.replaceAll('{width}', '1920').replaceAll('{height}', '1080')),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -117,33 +112,35 @@ class UserModalHeader extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Material(
-                            borderRadius: BorderRadius.circular(8.0),
-                            clipBehavior: Clip.antiAlias,
-                            elevation: 8.0,
-                            child: Ink.image(
-                              image: CachedNetworkImageProvider(user.stream!.game.avatarURL),
-                              fit: BoxFit.cover,
-                              width: 64.0,
-                              height: 64.0,
-                              child: InkWell(
-                                onTap: () {},
+                          if (profile!.stream!.gameBoxArtUrl != null) ...[
+                            Material(
+                              borderRadius: BorderRadius.circular(8.0),
+                              clipBehavior: Clip.antiAlias,
+                              elevation: 8.0,
+                              child: Ink.image(
+                                image: CachedNetworkImageProvider(profile!.stream!.gameBoxArtUrl!),
+                                fit: BoxFit.cover,
+                                width: 64.0,
+                                height: 64.0,
+                                child: InkWell(
+                                  onTap: () {},
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12.0),
+                            const SizedBox(width: 12.0),
+                          ],
                           Expanded(
                             child: SelectableText.rich(
                               TextSpan(
                                 children: [
-                                  TextSpan(text: '${user.broadcastSettings.title}\n', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  TextSpan(text: '${user.stream!.game.name}\n', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).textTheme.titleMedium!.color!.withValues(alpha: 0.75))),
+                                  TextSpan(text: '${profile!.stream!.title}\n', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                  TextSpan(text: '${profile!.stream!.gameName}\n', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).textTheme.titleMedium!.color!.withValues(alpha: 0.75))),
                                   WidgetSpan(
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(Icons.timelapse, color: Theme.of(context).textTheme.bodyMedium!.color, size: Theme.of(context).textTheme.bodyMedium!.fontSize),
-                                        Text(' ${DateTime.now().difference(user.stream!.createdAt)}'.split('.').first, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                        Text(' ${DateTime.now().difference(profile!.stream!.startedAt)}'.split('.').first, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                   ),
@@ -153,7 +150,7 @@ class UserModalHeader extends StatelessWidget {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(Icons.remove_red_eye, color: Theme.of(context).textTheme.bodyMedium!.color, size: Theme.of(context).textTheme.bodyMedium!.fontSize),
-                                        Text(' ${user.stream!.viewersCount}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                        Text(' ${profile!.stream!.viewerCount}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                   ),

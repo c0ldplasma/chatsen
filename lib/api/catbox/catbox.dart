@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
-import 'package:chatsen/data/filesharing/uploaded_media.dart';
+import 'package:coldchat/data/filesharing/uploaded_media.dart';
 
 class Catbox {
   static Future<UploadedMedia> uploadFile(String filename, Uint8List bytes) async {
@@ -10,7 +10,7 @@ class Catbox {
       'POST',
       Uri.parse('https://litterbox.catbox.moe/resources/internals/api.php'),
     );
-    request.headers['User-Agent'] = 'Chatsen/2.0 (https://github.com/Chatsen/Chatsen)';
+    request.headers['User-Agent'] = 'ColdChat (https://github.com/c0ldplasma/coldchat)';
     request.files.add(
       http.MultipartFile.fromBytes('fileToUpload', bytes, filename: filename),
     );

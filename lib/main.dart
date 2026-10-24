@@ -1,16 +1,16 @@
-import 'package:chatsen/data/filesharing/upload_queue_cubit.dart';
-import 'package:chatsen/data/notifications_cubit.dart';
+import 'package:coldchat/data/filesharing/upload_queue_cubit.dart';
+import 'package:coldchat/data/notifications_cubit.dart';
 
-import 'package:chatsen/data/custom_command.dart';
-import 'package:chatsen/data/message_trigger.dart';
-import 'package:chatsen/data/settings/application_appearance.dart';
-import 'package:chatsen/data/settings/blocked_message.dart';
-import 'package:chatsen/data/settings/blocked_user.dart';
-import 'package:chatsen/data/settings/chat_settings.dart';
-import 'package:chatsen/data/settings/mention_message.dart';
-import 'package:chatsen/data/settings/mention_user.dart';
-import 'package:chatsen/data/settings/message_appearance.dart';
-import 'package:chatsen/data/user_trigger.dart';
+import 'package:coldchat/data/custom_command.dart';
+import 'package:coldchat/data/message_trigger.dart';
+import 'package:coldchat/data/settings/application_appearance.dart';
+import 'package:coldchat/data/settings/blocked_message.dart';
+import 'package:coldchat/data/settings/blocked_user.dart';
+import 'package:coldchat/data/settings/chat_settings.dart';
+import 'package:coldchat/data/settings/mention_message.dart';
+import 'package:coldchat/data/settings/mention_user.dart';
+import 'package:coldchat/data/settings/message_appearance.dart';
+import 'package:coldchat/data/user_trigger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -24,7 +24,6 @@ import '/data/twitch_account.dart';
 import '/data/webview/cookie_data.dart';
 import '/app.dart';
 import 'data/filesharing/uploaded_media.dart';
-import 'data/legacy_migration.dart';
 import 'tmi/client/client.dart';
 
 Future<void> main() async {
@@ -72,18 +71,6 @@ Future<void> main() async {
   final settingsBox = boxes[2];
   final channelsBox = boxes[3];
   final emoteBadgeCacheBox = boxes[4];
-  final messageTriggersBox = boxes[6];
-  final userTriggersBox = boxes[7];
-  final customCommandsBox = boxes[8];
-
-  await importLegacySettings(
-    twitchAccountsBox,
-    accountSettingsBox,
-    settingsBox,
-    customCommandsBox,
-    messageTriggersBox,
-    userTriggersBox,
-  );
 
   // await settingsBox.clear();
 

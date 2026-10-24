@@ -1,17 +1,17 @@
-import 'package:chatsen/components/boxlistener.dart';
-import 'package:chatsen/modal/application_appearance.dart';
-import 'package:chatsen/modal/application_theme.dart';
-import 'package:chatsen/modal/chat_settings.dart';
-import 'package:chatsen/modal/credits.dart';
-import 'package:chatsen/modal/language_selection.dart';
-import 'package:chatsen/modal/message_appearance.dart';
-import 'package:chatsen/modal/message_triggers.dart';
+import 'package:coldchat/components/boxlistener.dart';
+import 'package:coldchat/modal/application_appearance.dart';
+import 'package:coldchat/modal/application_theme.dart';
+import 'package:coldchat/modal/chat_settings.dart';
+import 'package:coldchat/modal/credits.dart';
+import 'package:coldchat/modal/language_selection.dart';
+import 'package:coldchat/modal/message_appearance.dart';
+import 'package:coldchat/modal/message_triggers.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localized_locales/flutter_localized_locales.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:chatsen/l10n/app_localizations.dart';
+import 'package:coldchat/l10n/app_localizations.dart';
 
 import '../components/modal.dart';
 import '../components/tile.dart';
@@ -92,7 +92,7 @@ class SettingsModal extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      info == null ? '' : '${AppLocalizations.of(context)!.chatsen} ${info.version} (${info.buildNumber})',
+                      info == null ? '' : '${AppLocalizations.of(context)!.appName} ${info.version} (${info.buildNumber})',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
                     ),
