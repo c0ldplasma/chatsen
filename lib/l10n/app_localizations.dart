@@ -202,6 +202,12 @@ abstract class AppLocalizations {
   /// **'Twitch rejected the login for {login}. Chat stays disconnected until you sign in again.'**
   String loginExpiredDescription(String login);
 
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed'**
+  String get loginFailed;
+
   /// No description provided for @signInAgain.
   ///
   /// In en, this message translates to:

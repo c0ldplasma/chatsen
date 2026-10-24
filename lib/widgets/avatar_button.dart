@@ -79,6 +79,7 @@ class _AvatarButtonState extends State<AvatarButton> {
                                   }
                                 },
                                 onPanEnd: (details) {
+                                  if (twitchAccountsBox.isEmpty) return;
                                   var activeAccountHash = accountSettingsBox.get('activeTwitchAccount');
                                   var indexOfActiveAccountHash = twitchAccountsBox.keys.toList().indexOf(activeAccountHash);
                                   switch (direction) {
@@ -111,10 +112,12 @@ class _AvatarButtonState extends State<AvatarButton> {
                                       child: SizedBox(
                                         width: 32.0,
                                         height: 32.0,
-                                        child: Ink.image(
-                                          image: CachedNetworkImageProvider(twitchAccount.userData.avatarUrl),
-                                          fit: BoxFit.cover,
-                                        ),
+                                        child: twitchAccount == null
+                                            ? const Icon(Icons.person_outline_rounded)
+                                            : Ink.image(
+                                                image: CachedNetworkImageProvider(twitchAccount.userData.avatarUrl),
+                                                fit: BoxFit.cover,
+                                              ),
                                       ),
                                     ),
                                   ),

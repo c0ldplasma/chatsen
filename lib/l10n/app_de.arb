@@ -19,6 +19,7 @@
       "login": {"type": "String"}
     }
   },
+  "loginFailed": "Anmeldung fehlgeschlagen",
   "signInAgain": "Anmelden",
   "uploadingTo": "Upload zu {host}",
   "@uploadingTo": {

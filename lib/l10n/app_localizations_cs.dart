@@ -44,6 +44,9 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
+  String get loginFailed => 'Login failed';
+
+  @override
   String get signInAgain => 'Sign in';
 
   @override

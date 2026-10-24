@@ -38,9 +38,17 @@ class _VerifyUserModalState extends State<VerifyUserModal> {
           cookies: widget.cookies,
         );
 
-        // Keyed by userId@clientId, so signing in again as the same user
-        // replaces the stale entry (and its dead expiresAt) in place.
-        await Hive.box('TwitchAccounts').put(widget.tokenData.hash, twitchAccount);
+        // Keyed by userId@clientId. Signing in again as the same user replaces
+        // the stale entry (and its dead expiresAt) — also one stored under a
+        // different client id, such as a login from before ColdChat had its
+        // own Twitch app.
+        final accountsBox = Hive.box('TwitchAccounts');
+        final replacedHashes = [
+          for (final entry in accountsBox.toMap().entries)
+            if (entry.key != widget.tokenData.hash && entry.value is TwitchAccount && (entry.value as TwitchAccount).tokenData.userId == widget.tokenData.userId) entry.key,
+        ];
+        await accountsBox.deleteAll(replacedHashes);
+        await accountsBox.put(widget.tokenData.hash, twitchAccount);
 
         // Re-login for the account we are already using (or the very first
         // login) should take effect immediately — otherwise the connection sits
@@ -48,7 +56,8 @@ class _VerifyUserModalState extends State<VerifyUserModal> {
         // restart. Adding a *second* account still doesn't steal the session.
         final accountSettingsBox = Hive.box('AccountSettings');
         final activeHash = accountSettingsBox.get('activeTwitchAccount');
-        if (activeHash == null || activeHash == widget.tokenData.hash) {
+        final activeIsGone = activeHash == null || !accountsBox.containsKey(activeHash) || replacedHashes.contains(activeHash);
+        if (activeIsGone || activeHash == widget.tokenData.hash) {
           await accountSettingsBox.put('activeTwitchAccount', widget.tokenData.hash);
           if (mounted) await context.read<Client>().connectAs(twitchAccount);
         }
