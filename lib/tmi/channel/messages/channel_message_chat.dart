@@ -179,6 +179,9 @@ class ChannelMessageChat extends ChannelMessage with ChannelMessageUser, Channel
       if (badgeUsers.users.contains(user.id)) badges.add(badgeUsers.badge);
     }
 
+    final bttvProBadge = channel?.client.bttvProBadges[user.id];
+    if (bttvProBadge != null) badges.add(bttvProBadge);
+
     final emoteLookup = channel?.emoteLookup ?? const <String, Emote>{};
     var textSplits = messageText.split(' ').where((split) => split.isNotEmpty);
     if (replyInfo != null) textSplits = textSplits.skip(1);
