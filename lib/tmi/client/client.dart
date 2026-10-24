@@ -45,13 +45,16 @@ class Client {
   Connection transmitter = Connection();
   List<String> blockedUserIds = [];
 
-  List<Provider> providers = [
+  // The account whose token is used for Twitch API requests such as badges.
+  TwitchAccount? _apiAccount;
+
+  late final List<Provider> providers = [
     ChatsenProvider(),
     SevenTVProvider(),
     BetterTTVProvider(),
     FrankerFaceZProvider(),
     DankChatProvider(),
-    TwitchProvider(),
+    TwitchProvider(tokenData: () => _apiAccount?.tokenData),
     EmojiProvider(),
   ];
 
@@ -103,6 +106,7 @@ class Client {
     transmitter.onReceive = receive;
     receiver.onStateChange = stateChange;
 
+    _apiAccount = twitchAccount;
     if (twitchAccount != null) connectAs(twitchAccount);
 
     refreshGlobalEmotes();
@@ -387,6 +391,12 @@ class Client {
     // Show this account's Twitch emotes from the last session right away; the
     // fresh list only arrives with GLOBALUSERSTATE after connecting. Also
     // clears the previous account's emotes when switching accounts.
+    // Twitch badges need a token, so a first login after browsing anonymously
+    // has to load them now.
+    final gainedApiAccess = _apiAccount?.tokenData.accessToken == null && twitchAccount.tokenData.accessToken != null;
+    _apiAccount = twitchAccount;
+    if (gainedApiAccess) unawaited(refreshGlobalBadges());
+
     final userId = twitchAccount.tokenData.userId;
     twitchUserEmotes.change(userId != null ? cache?.loadEmotes(EmoteBadgeCache.twitchUserEmotesKey(userId)) ?? [] : []);
 
