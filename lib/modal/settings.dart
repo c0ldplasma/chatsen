@@ -90,7 +90,7 @@ class SettingsModal extends StatelessWidget {
                 builder: (context, snapshot) {
                   final info = snapshot.data;
                   return Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
                       info == null ? '' : '${AppLocalizations.of(context)!.chatsen} ${info.version} (${info.buildNumber})',
                       textAlign: TextAlign.center,
