@@ -3,8 +3,12 @@
 ColdChat — a Flutter Twitch chat client, forked from [chatsen/chatsen](https://github.com/chatsen/chatsen).
 Ships as `com.plasmari.coldchat` (Apple team `RA25PYVUTF`), which is **not** the same app as upstream.
 
-ColdChat supports **Android and iOS only**. Desktop and web support was removed; the untracked `windows/`,
-`macos/`, `linux/` and `web/` folders in a working copy are leftovers and aren't built.
+ColdChat supports **Android and iOS only**. Desktop and web support was removed; don't recreate the
+`windows/`, `macos/`, `linux/` or `web/` folders.
+
+`analysis_options.yaml` excludes `build/`, `android/` and `ios/`. Flutter itself adds an exclude for every
+platform folder that exists before each command (`AnalysisOptionsMigration` in flutter_tools), so a stray
+platform folder shows up as a change to this file.
 
 This file documents the build, install and release procedures. Everything below has been run and verified
 on macOS with Xcode 26.5 / Flutter 3.47.8 (stable).
