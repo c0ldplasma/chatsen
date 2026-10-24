@@ -155,8 +155,10 @@ class Client {
       }),
     );
     final merged = [for (final list in results) ...list];
+    final changed = !_sameIds(globalBadges.state.map((b) => b.id), merged.map((b) => b.id));
     globalBadges.change(merged);
     cache?.saveBadges(EmoteBadgeCache.globalBadgesKey, merged);
+    if (changed) _rebuildChannelMessages();
   }
 
   Future<void> refreshGlobalUserBadges() async {
@@ -172,8 +174,23 @@ class Client {
       }),
     );
     final merged = [for (final list in results) ...list];
+    final changed = !_sameIds(
+      globalUserBadges.state.map((b) => '${b.badge.id}:${b.users.length}'),
+      merged.map((b) => '${b.badge.id}:${b.users.length}'),
+    );
     globalUserBadges.change(merged);
     cache?.saveUserBadges(EmoteBadgeCache.globalUserBadgesKey, merged);
+    if (changed) _rebuildChannelMessages();
+  }
+
+  static bool _sameIds(Iterable<String> a, Iterable<String> b) => const IterableEquality<String>().equals(a, b);
+
+  // Messages resolve their badges when they're built, so history inserted
+  // before the global badges arrived would otherwise never show them.
+  void _rebuildChannelMessages() {
+    for (final channel in channels.state) {
+      unawaited(channel.rebuildMessages());
+    }
   }
 
   // Twitch IRC allows ~20 JOIN commands per 10 seconds for normal users. The

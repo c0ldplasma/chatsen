@@ -218,7 +218,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     await Future.wait([emotesFuture, badgesFuture]);
 
     if (_emoteBadgeSignature() != before) {
-      await _rebuildMessages();
+      await rebuildMessages();
     }
 
     await Future.wait([refreshChannelFuture, refreshChattersFuture]);
@@ -233,7 +233,7 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
   // Rebuild already-rendered chat messages in small batches, yielding to the
   // event loop between them so a large backlog doesn't block scrolling for a
   // second or two while emote/badge data is reapplied.
-  Future<void> _rebuildMessages() async {
+  Future<void> rebuildMessages() async {
     final messages = channelMessages.state.whereType<ChannelMessageChat>().toList();
     var processed = 0;
     for (final message in messages) {
