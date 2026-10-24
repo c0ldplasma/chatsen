@@ -44,6 +44,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get loginFailed => 'Anmeldung fehlgeschlagen';
+
+  @override
   String get signInAgain => 'Anmelden';
 
   @override

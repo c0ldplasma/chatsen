@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
 
 import '/components/separator.dart';
@@ -92,6 +93,10 @@ class TwitchAccountModal extends StatelessWidget {
           ),
           InkWell(
             onTap: () async {
+              final accountSettingsBox = Hive.box('AccountSettings');
+              if (accountSettingsBox.get('activeTwitchAccount') == twitchAccount.tokenData.hash) {
+                await accountSettingsBox.delete('activeTwitchAccount');
+              }
               await twitchAccount.delete();
               if (!context.mounted) return;
               Navigator.of(context).pop();

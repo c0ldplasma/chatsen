@@ -1,4 +1,5 @@
 
+import 'package:chatsen/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 // import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -19,7 +20,8 @@ const String twitchClientId = 'y05nqtxmuntv88n98uhfz4sfpr0u17';
 /// Registered redirect URL. Never actually loaded: [_OAuthWebViewModalState]
 /// intercepts the navigation and reads the token from the URL fragment. If that
 /// ever failed, the request would go to the phone itself, not to a server.
-const String _redirectUri = 'https://localhost';
+// Must match the console entry exactly, including the trailing slash.
+const String _redirectUri = 'https://localhost/';
 
 class OAuthWebViewModal extends StatefulWidget {
   const OAuthWebViewModal({super.key});
@@ -32,13 +34,35 @@ class _OAuthWebViewModalState extends State<OAuthWebViewModal> {
   WebViewController? _webViewController;
   late final WebViewCookieManager cookieManager = WebViewCookieManager();
 
-  /// Twitch redirects to `https://localhost#access_token=…` on success and to
-  /// `https://localhost?error=…` when the user declines.
+  /// Twitch redirects to `https://localhost/#access_token=…` on success and to
+  /// `https://localhost/?error=…` when the user declines.
   void _handleRedirect(Uri uri) {
     final accessToken = Uri.splitQueryString(uri.fragment)['access_token'];
+    final error = uri.queryParameters['error'];
     if (!mounted) return;
-    Navigator.of(context).pop();
-    if (accessToken == null) return;
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    if (accessToken == null) {
+      // Declining is a deliberate choice; anything else is a failure the user
+      // should see instead of the sheet just closing. A dialog, because a snack
+      // bar would sit behind the account sheet that is still open.
+      if (error != null && error != 'access_denied') {
+        showDialog<void>(
+          context: navigator.context,
+          builder: (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.loginFailed),
+            content: Text(uri.queryParameters['error_description'] ?? error),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(AppLocalizations.of(context)!.close),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
 
     Modal.show(
       context: context,

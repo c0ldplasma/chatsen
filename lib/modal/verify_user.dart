@@ -56,7 +56,8 @@ class _VerifyUserModalState extends State<VerifyUserModal> {
         // restart. Adding a *second* account still doesn't steal the session.
         final accountSettingsBox = Hive.box('AccountSettings');
         final activeHash = accountSettingsBox.get('activeTwitchAccount');
-        if (activeHash == null || activeHash == widget.tokenData.hash || replacedHashes.contains(activeHash)) {
+        final activeIsGone = activeHash == null || !accountsBox.containsKey(activeHash) || replacedHashes.contains(activeHash);
+        if (activeIsGone || activeHash == widget.tokenData.hash) {
           await accountSettingsBox.put('activeTwitchAccount', widget.tokenData.hash);
           if (mounted) await context.read<Client>().connectAs(twitchAccount);
         }

@@ -26,6 +26,7 @@
       }
     }
   },
+  "loginFailed": "Login failed",
   "signInAgain": "Sign in",
   "uploadingTo": "Uploading to {host}",
   "@uploadingTo": {
