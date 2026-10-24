@@ -544,6 +544,12 @@ abstract class AppLocalizations {
   /// **'Compact messages'**
   String get compactMessages;
 
+  /// No description provided for @showBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Show badges'**
+  String get showBadges;
+
   /// No description provided for @messageTrigger.
   ///
   /// In en, this message translates to:

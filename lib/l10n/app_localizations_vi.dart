@@ -242,6 +242,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get compactMessages => 'Tin nhắn nhỏ gọn';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Bộ lọc tin nhắn';
 
   @override

@@ -242,6 +242,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get compactMessages => 'Kompaktní zprávy';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Spouštěč zprávy';
 
   @override

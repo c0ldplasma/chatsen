@@ -242,6 +242,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get compactMessages => 'Kompakta meddelanden';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Meddelande utlösare';
 
   @override

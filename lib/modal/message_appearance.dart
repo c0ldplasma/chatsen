@@ -36,6 +36,21 @@ class MessageAppearanceModal extends StatelessWidget {
                 },
               ),
               Tile(
+                prefix: const Icon(Icons.verified_outlined),
+                title: AppLocalizations.of(context)!.showBadges,
+                suffix: Toggle(
+                  value: messageAppearance.badges,
+                  onChanged: (value) {
+                    messageAppearance.badges = value;
+                    messageAppearance.save();
+                  },
+                ),
+                onTap: () {
+                  messageAppearance.badges = !messageAppearance.badges;
+                  messageAppearance.save();
+                },
+              ),
+              Tile(
                 prefix: const Icon(Icons.view_compact_outlined),
                 title: AppLocalizations.of(context)!.compactMessages,
                 suffix: Toggle(

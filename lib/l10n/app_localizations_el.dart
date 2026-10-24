@@ -242,6 +242,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get compactMessages => 'Συμπιεσμένα μηνύματα';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Συντόμευση μηνύματος';
 
   @override

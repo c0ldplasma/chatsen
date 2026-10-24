@@ -120,6 +120,7 @@
   "messageAppearance": "Nachrichten",
   "showTimestamps": "Uhrzeit anzeigen",
   "compactMessages": "Kompakte Darstellung",
+  "showBadges": "Abzeichen anzeigen",
   "messageTrigger": "Nachrichtenauslöser",
   "pattern": "Begriff",
   "mention": "Erwähnung",

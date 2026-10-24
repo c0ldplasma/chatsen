@@ -242,6 +242,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get compactMessages => 'Compatta messaggi';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Trigger messaggio';
 
   @override

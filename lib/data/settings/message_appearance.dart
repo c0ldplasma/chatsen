@@ -21,4 +21,7 @@ class MessageAppearance extends HiveObject {
 
   @HiveField(5)
   double scale = 1.0;
+
+  @HiveField(6, defaultValue: true)
+  bool badges = true;
 }

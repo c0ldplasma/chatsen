@@ -242,6 +242,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get compactMessages => 'Compact messages';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Message trigger';
 
   @override

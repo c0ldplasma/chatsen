@@ -242,6 +242,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get compactMessages => 'Kompakte Darstellung';
 
   @override
+  String get showBadges => 'Abzeichen anzeigen';
+
+  @override
   String get messageTrigger => 'Nachrichtenauslöser';
 
   @override
