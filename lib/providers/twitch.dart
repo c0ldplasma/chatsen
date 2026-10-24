@@ -1,6 +1,7 @@
 import 'package:chatsen/providers/badge_provider.dart';
 
 import '../api/twitch/twitch.dart';
+import '../data/twitch/token_data.dart';
 import '../data/custom_badge.dart';
 import '../data/badge_users.dart';
 import '../data/emote.dart';
@@ -8,6 +9,18 @@ import 'emote_provider.dart';
 import 'provider.dart';
 
 class TwitchProvider extends Provider with EmoteProvider, BadgeProvider {
+  /// The token for Helix requests. Badges can't be loaded without one, e.g.
+  /// while browsing anonymously.
+  final TokenData? Function() tokenData;
+
+  TwitchProvider({TokenData? Function()? tokenData}) : tokenData = tokenData ?? (() => null);
+
+  TokenData get _requireTokenData {
+    final data = tokenData();
+    if (data?.accessToken == null) throw 'No Twitch login to load badges with';
+    return data!;
+  }
+
   @override
   String get name => 'Twitch';
 
@@ -16,7 +29,7 @@ class TwitchProvider extends Provider with EmoteProvider, BadgeProvider {
 
   @override
   Future<List<CustomBadge>> globalBadges() async {
-    final twitchBadges = await Twitch.globalBadges();
+    final twitchBadges = await Twitch.globalBadges(_requireTokenData);
     return [
       for (final twitchBadgeData in twitchBadges.entries)
         for (final twitchBadgeVersion in twitchBadgeData.value.entries)
@@ -36,7 +49,7 @@ class TwitchProvider extends Provider with EmoteProvider, BadgeProvider {
 
   @override
   Future<List<CustomBadge>> channelBadges(String uid) async {
-    final twitchBadges = await Twitch.channelBadges(uid);
+    final twitchBadges = await Twitch.channelBadges(_requireTokenData, uid);
     return [
       for (final twitchBadgeData in twitchBadges.entries)
         for (final twitchBadgeVersion in twitchBadgeData.value.entries)
