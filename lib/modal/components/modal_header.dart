@@ -35,7 +35,7 @@ class ModalHeader extends StatelessWidget {
             Material(
               borderRadius: BorderRadius.circular(24.0),
               clipBehavior: Clip.antiAlias,
-              color: Theme.of(context).colorScheme.background,
+              color: Theme.of(context).colorScheme.surface,
               child: closeButton,
             ),
           if (!closeBackground) closeButton,

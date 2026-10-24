@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 // import 'package:webview_cookie_manager/webview_cookie_manager.dart';
@@ -7,7 +6,6 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 import '../components/modal.dart';
-import '../data/webview/cookie_data.dart';
 import 'components/modal_header.dart';
 import 'verify_token.dart';
 
@@ -102,6 +100,7 @@ class _OAuthWebViewModalState extends State<OAuthWebViewModal> {
             if (accessToken == null) return;
 
             final cookies = await _webViewController!.runJavaScriptReturningResult('document.cookie') as String;
+            if (!mounted) return;
 
             Navigator.of(context).pop();
 

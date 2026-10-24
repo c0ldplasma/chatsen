@@ -20,11 +20,7 @@ class EmojiProvider extends Provider with EmoteProvider {
     final responseJson = json.decode(utf8.decode(response.bodyBytes)) as List;
     // Emojis render as text in the platform's emoji font, so only list the
     // ones that font has; anything newer would show as an empty box.
-    final supportedKey = Platform.isIOS || Platform.isMacOS
-        ? 'has_img_apple'
-        : Platform.isAndroid
-            ? 'has_img_google'
-            : 'has_img_twitter';
+    final supportedKey = Platform.isIOS ? 'has_img_apple' : 'has_img_google';
     // The file is in codepoint order. Use Unicode's order instead (Smileys &
     // Emotion first), with the bare skin tone swatches ("Component") at the end.
     int rank(dynamic entry) => (entry['category'] == 'Component' ? 100000 : 0) + (entry['sort_order'] as int);

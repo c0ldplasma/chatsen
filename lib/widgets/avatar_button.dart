@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatsen/components/surface.dart';
 import 'package:chatsen/modal/notifications.dart';
+import 'package:chatsen/tools/m3parser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -34,7 +35,7 @@ class _AvatarButtonState extends State<AvatarButton> {
         children: [
           Material(
             borderRadius: BorderRadius.circular(128.0),
-            color: Theme.of(context).colorScheme.surfaceVariant,
+            color: AppColors.of(context).surfaceVariant,
             child: InkWell(
               onTap: () => Modal.show(
                 context: context,

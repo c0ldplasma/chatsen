@@ -98,7 +98,7 @@ class ChatsenModal extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Material(
-                          color: Theme.of(context).colorScheme.onBackground,
+                          color: Theme.of(context).colorScheme.onSurface,
                           borderRadius: BorderRadius.circular(4.0),
                           child: const SizedBox(
                             height: 4.0,
@@ -187,7 +187,7 @@ class TwitchAccountButton extends StatelessWidget {
                 Text(
                   AppLocalizations.of(context)!.loggedInVia('Twitch'),
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onBackground.withOpacity(0.75),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
                   ),
                 ),
               ],

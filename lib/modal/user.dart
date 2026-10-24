@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chatsen/api/twitch/twitch.dart';
 import 'package:flutter/material.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
@@ -52,7 +54,7 @@ class UserModal extends StatelessWidget {
                                 userId: snapshot.data!.id,
                               );
                             } catch (e) {
-                              print(e);
+                              log('$e');
                               // channel.channelMessages.add(ChannelMessageNotice(message: message, dateTime: dateTime))
                             }
                             // channel?.send('/ban ${snapshot.data!.login}'),
@@ -91,7 +93,7 @@ class UserModal extends StatelessWidget {
                                             duration: time.value.inSeconds,
                                           );
                                         } catch (e) {
-                                          print(e);
+                                          log('$e');
                                           // channel.channelMessages.add(ChannelMessageNotice(message: message, dateTime: dateTime))
                                         }
                                         // channel?.send('/timeout ${snapshot.data!.login} ${time.value.inSeconds}'),
@@ -119,7 +121,7 @@ class UserModal extends StatelessWidget {
                                 userId: snapshot.data!.id,
                               );
                             } catch (e) {
-                              print(e);
+                              log('$e');
                               // channel.channelMessages.add(ChannelMessageNotice(message: message, dateTime: dateTime))
                             }
                             // channel?.send('/unban ${snapshot.data!.login}');

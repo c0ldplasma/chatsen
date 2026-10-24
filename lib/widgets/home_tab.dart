@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chatsen/api/twitch/twitch.dart';
 import 'package:chatsen/components/boxlistener.dart';
@@ -146,13 +144,13 @@ class _HomeTabState extends State<HomeTab> {
                   Text(
                     AppLocalizations.of(context)!.chatsen,
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onBackground,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                   ),
                   Text(
                     AppLocalizations.of(context)!.startUsingTheApp,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onBackground,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                   ),
                   const SizedBox(height: 24.0),
@@ -166,7 +164,7 @@ class _HomeTabState extends State<HomeTab> {
                     iconSize: 64.0,
                     icon: Icon(
                       Icons.add_circle_outline_rounded,
-                      color: Theme.of(context).colorScheme.onBackground,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -183,14 +181,11 @@ class _HomeTabState extends State<HomeTab> {
             },
             child: CustomScrollView(
               slivers: [
-                SliverAppBar.large(
+                const SliverAppBar.large(
                   surfaceTintColor: Colors.transparent,
-                  backgroundColor:
-                      Platform.isWindows ? Colors.transparent : null,
                   // foregroundColor: Colors.transparent,
-                  shadowColor: Platform.isWindows ? Colors.transparent : null,
-                  title: const Text('ColdChat'),
-                  actions: const [
+                  title: Text('ColdChat'),
+                  actions: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.0),
                       child: AvatarButton(),
@@ -250,8 +245,9 @@ class _HomeTabState extends State<HomeTab> {
                   FutureBuilder<List<SearchData>>(
                     future: searchResults,
                     builder: (context, snapshot) {
-                      if (snapshot.hasError)
+                      if (snapshot.hasError) {
                         return SliverList.list(children: const [Text('Error')]);
+                      }
                       if (!snapshot.hasData) {
                         return SliverList.list(
                           children: const [
@@ -273,8 +269,8 @@ class _HomeTabState extends State<HomeTab> {
                               child: Material(
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .onBackground
-                                    .withOpacity(0.1),
+                                    .onSurface
+                                    .withValues(alpha: 0.1),
                                 child: const Icon(Icons.add_circle_outline),
                               ),
                             ),
@@ -291,8 +287,8 @@ class _HomeTabState extends State<HomeTab> {
                                 child: Material(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .onBackground
-                                      .withOpacity(0.1),
+                                      .onSurface
+                                      .withValues(alpha: 0.1),
                                   // child: const Icon(Icons.add_circle_outline),
                                   child: Ink.image(
                                       image: NetworkImage(
@@ -310,8 +306,9 @@ class _HomeTabState extends State<HomeTab> {
                     future: recommendedStreams,
                     builder: (context, snapshot) {
                       if (snapshot.hasError ||
-                          (snapshot.data?.isEmpty ?? false))
+                          (snapshot.data?.isEmpty ?? false)) {
                         return SliverList.list(children: const []);
+                      }
                       if (!snapshot.hasData) {
                         return SliverList.list(
                           children: const [
@@ -410,8 +407,8 @@ class StreamPreviewPill extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.66),
-                      Colors.black.withOpacity(0.66),
+                      Colors.black.withValues(alpha: 0.66),
+                      Colors.black.withValues(alpha: 0.66),
                     ],
                     stops: const [
                       0.0,
@@ -490,8 +487,8 @@ class StreamPreviewSmall extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
-                            .onBackground
-                            .withOpacity(0.9)),
+                            .onSurface
+                            .withValues(alpha: 0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
@@ -499,8 +496,8 @@ class StreamPreviewSmall extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
-                            .onBackground
-                            .withOpacity(0.9)),
+                            .onSurface
+                            .withValues(alpha: 0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Row(
@@ -520,8 +517,8 @@ class StreamPreviewSmall extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
-                                .onBackground
-                                .withOpacity(0.9)),
+                                .onSurface
+                                .withValues(alpha: 0.9)),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(width: 16.0),
@@ -541,8 +538,8 @@ class StreamPreviewSmall extends StatelessWidget {
                               ?.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .onBackground
-                                      .withOpacity(0.9)),
+                                      .onSurface
+                                      .withValues(alpha: 0.9)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -590,8 +587,8 @@ class StreamPreviewLarge extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.0),
-                    Colors.black.withOpacity(1.0),
+                    Colors.black.withValues(alpha: 0.0),
+                    Colors.black.withValues(alpha: 1.0),
                   ],
                   stops: const [
                     0.25,
@@ -611,7 +608,7 @@ class StreamPreviewLarge extends StatelessWidget {
                     stream.userName,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -620,7 +617,7 @@ class StreamPreviewLarge extends StatelessWidget {
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
-                        ?.copyWith(color: Colors.white.withOpacity(0.9)),
+                        ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
@@ -628,7 +625,7 @@ class StreamPreviewLarge extends StatelessWidget {
                     style: Theme.of(context)
                         .textTheme
                         .bodyLarge
-                        ?.copyWith(color: Colors.white.withOpacity(0.9)),
+                        ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Row(
@@ -648,14 +645,14 @@ class StreamPreviewLarge extends StatelessWidget {
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
-                            ?.copyWith(color: Colors.white.withOpacity(0.9)),
+                            ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(width: 16.0),
                       Icon(
                         Icons.alarm,
                         size: 12.0,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                       ),
                       const SizedBox(width: 4.0),
                       Expanded(
@@ -666,7 +663,7 @@ class StreamPreviewLarge extends StatelessWidget {
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
-                              ?.copyWith(color: Colors.white.withOpacity(0.9)),
+                              ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

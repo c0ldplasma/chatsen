@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:chatsen/data/notifications_cubit.dart';
 import 'package:chatsen/tmi/channel/channel_message.dart';
 import 'package:chatsen/tmi/client/client.dart';
 import 'package:chatsen/tmi/client/client_listener.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localized_locales/flutter_localized_locales.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -23,16 +20,6 @@ import 'tmi/channel/messages/channel_message_chat.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
-
-  static int windowsBuildVersion() {
-    try {
-      RegExp regex = RegExp(r'.*\(Build (.*)\).*');
-      String version = regex.firstMatch(Platform.operatingSystemVersion)!.group(1)!;
-      return int.parse(version);
-    } catch (e) {
-      return 0;
-    }
-  }
 
   @override
   State<App> createState() => _AppState();
@@ -113,22 +100,6 @@ class _AppState extends State<App> with WidgetsBindingObserver implements Client
             locale: matchingCustomLocale,
             debugShowCheckedModeBanner: false,
             home: Builder(builder: (context) {
-              if (Platform.isWindows) {
-                int winver = App.windowsBuildVersion();
-                if (winver < 22000) {
-                  Window.setEffect(
-                    effect: WindowEffect.acrylic,
-                    dark: Theme.of(context).brightness == Brightness.dark,
-                    // color: Theme.of(context).colorScheme.primary.withOpacity(0.75),
-                  );
-                } else {
-                  Window.setEffect(
-                    effect: WindowEffect.mica,
-                    dark: Theme.of(context).brightness == Brightness.dark,
-                    color: Theme.of(context).colorScheme.primary,
-                  );
-                }
-              }
               return AnnotatedRegion<SystemUiOverlayStyle>(
                 value: SystemUiOverlayStyle(
                   systemNavigationBarColor: Colors.transparent,
@@ -142,7 +113,7 @@ class _AppState extends State<App> with WidgetsBindingObserver implements Client
                   children: [
                     const HomePage(),
                     Container(
-                      color: Theme.of(context).colorScheme.background,
+                      color: Theme.of(context).colorScheme.surface,
                       height: MediaQuery.of(context).viewPadding.top,
                     ),
                   ],
@@ -156,12 +127,14 @@ class _AppState extends State<App> with WidgetsBindingObserver implements Client
                 colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF2196F3),
                 brightness: Brightness.light,
               ),
+              appColors: AppColors.fromSeed(Color(box.get('themeColor') as int? ?? 0xFF2196F3), Brightness.light),
             ),
             darkTheme: M3Parser.patchTheme(
               ThemeData(
                 colorSchemeSeed: Color(box.get('themeColor') as int? ?? 0xFF2196F3),
                 brightness: Brightness.dark,
               ),
+              appColors: AppColors.fromSeed(Color(box.get('themeColor') as int? ?? 0xFF2196F3), Brightness.dark),
             ),
             themeMode: applicationAppearance.themeMode == 'dark'
                 ? ThemeMode.dark

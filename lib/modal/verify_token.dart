@@ -5,7 +5,6 @@ import '/api/twitch/twitch.dart';
 import 'verify_user.dart';
 import '/components/modal.dart';
 import '/data/twitch/token_data.dart';
-import '/data/webview/cookie_data.dart';
 
 class VerifyTokenModal extends StatefulWidget {
   final String token;
@@ -29,6 +28,7 @@ class _VerifyTokenModalState extends State<VerifyTokenModal> {
     future = Twitch.validateToken(widget.token);
     future.then(
       (value) async {
+        if (!mounted) return;
         Navigator.of(context).pop();
 
         Modal.show(

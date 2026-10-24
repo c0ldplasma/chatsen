@@ -237,7 +237,7 @@ class _EmotePickerState extends State<EmotePicker> {
                               SliverPinnedHeader(
                                 key: groupKeys[category.key],
                                 child: ColoredBox(
-                                  color: Theme.of(context).colorScheme.background,
+                                  color: Theme.of(context).colorScheme.surface,
                                   child: Padding(
                                     padding: const EdgeInsets.only(top: 8.0, bottom: 4.0, left: 4.0, right: 4.0),
                                     child: Text(category.key),

@@ -108,7 +108,7 @@ class Client {
 
     // Drain the join queue on a timer as a steady-state fallback, but also
     // trigger an immediate pass as soon as the connection is established
-    // (see _joinPass call on the 001 handler) so we don't idle up to 2s
+    // (see the _joinPass call in stateChange) so we don't idle up to 2s
     // waiting for the first tick.
     Timer.periodic(const Duration(seconds: 2), (timer) => _joinPass());
 
@@ -471,6 +471,7 @@ class Client {
     }
     // On (re)connect, allow another larger join burst.
     _firstJoinPass = true;
+    if (connection == receiver && change.nextState is ConnectionConnected) _joinPass();
   }
 
   Future<void> receive(Connection connection, irc.Message event) async {
@@ -478,12 +479,12 @@ class Client {
       case '001':
         if (connection.state is ConnectionConnecting) {
           final stateTwitchAccount = (connection.state as ConnectionConnecting).twitchAccount;
-          // Emit connected immediately so channel joins can start, then fetch
-          // the (paginated, slow) blocked-user list in the background and fill
-          // it into the live state's mutable list.
+          // Switch to connected immediately so channel joins can start, then
+          // fetch the (paginated, slow) blocked-user list in the background and
+          // fill it into the live state's mutable list.
           final connectedState = ConnectionConnected(stateTwitchAccount);
-          connection.emit(connectedState);
-          _joinPass();
+          // Joining starts from stateChange once the state has switched.
+          connection.add(ConnectionEstablished(connectedState));
           if (stateTwitchAccount.tokenData.accessToken != null) {
             Twitch.blockedUsers(stateTwitchAccount.tokenData).then((ids) {
               connectedState.blockedUserIds.addAll(ids);

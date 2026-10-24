@@ -8,7 +8,6 @@ import '/tmi/client/client.dart';
 import '/data/twitch/token_data.dart';
 import '/data/twitch/user_data.dart';
 import '/data/twitch_account.dart';
-import '/data/webview/cookie_data.dart';
 import '/api/twitch/twitch.dart';
 
 class VerifyUserModal extends StatefulWidget {

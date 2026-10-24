@@ -1,6 +1,7 @@
 {
   "chatsen": "ColdChat",
   "catsen": "Catsen",
+  "translationAuthorNames": "",
   "loggedInVia": "Eingeloggt über {provider}",
   "@loggedInVia": {
     "placeholders": {

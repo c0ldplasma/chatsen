@@ -1,8 +1,4 @@
-import 'dart:io';
-
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:chatsen/modal/channel.dart';
-import 'package:chatsen/widgets/cookies_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -19,34 +15,6 @@ import '../tmi/connection/connection_state.dart' as tmi;
 import '../widgets/channel_view.dart';
 import '../widgets/home_tab.dart';
 import '../widgets/login_expired_banner.dart';
-
-class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const MyAppBar({super.key});
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: preferredSize.height,
-        child: Row(
-          children: [
-            Expanded(child: MoveWindow()),
-            InkWell(
-              child: SizedBox(
-                height: preferredSize.height,
-                width: preferredSize.height,
-                child: Icon(
-                  Icons.close_rounded,
-                  color: Theme.of(context).colorScheme.onBackground,
-                ),
-              ),
-              onTap: () => appWindow.close(),
-            ),
-          ],
-        ),
-      );
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight / 2.0);
-}
 
 /// Lets descendants (the search/stream tiles in [HomeTab]) ask the home page to
 /// switch to a channel tab after joining it. Provided via [Provider] from
@@ -142,8 +110,6 @@ class _HomePageState extends State<HomePage>
           return Provider<HomeTabSwitcher>.value(
             value: _switcher,
             child: Scaffold(
-              backgroundColor: Platform.isWindows ? Colors.transparent : null,
-              appBar: Platform.isWindows ? const MyAppBar() : null,
               extendBody: true,
               extendBodyBehindAppBar: true,
               bottomNavigationBar: DarkBar(
@@ -154,7 +120,7 @@ class _HomePageState extends State<HomePage>
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
                     labelColor: fg,
-                    unselectedLabelColor: fg.withOpacity(0.6),
+                    unselectedLabelColor: fg.withValues(alpha: 0.6),
                     indicatorColor: fg,
                     dividerColor: Colors.transparent,
                     tabs: [

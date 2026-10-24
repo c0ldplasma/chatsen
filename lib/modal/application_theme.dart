@@ -62,7 +62,7 @@ class ApplicationThemeModal extends StatelessWidget {
                 title: color.key,
                 onTap: () async {
                   Navigator.pop(context);
-                  await Hive.box('Settings').put('themeColor', color.value.value);
+                  await Hive.box('Settings').put('themeColor', color.value.toARGB32());
                 },
               );
             }),
