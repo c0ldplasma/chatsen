@@ -18,9 +18,41 @@ Add new strings to `app_en.arb` (the template, see `l10n.yaml`) and ideally `app
 locales fall back to English with an "N untranslated message(s)" warning — that warning is pre-existing
 and not a failure. Translations are managed via Crowdin (`crowdin.yml`).
 
+## Versioning
+
+`pubspec.yaml`'s `version: <name>+<build>` on `main` is always the **last release**. Flutter maps it to
+`CFBundleShortVersionString`/`CFBundleVersion` on iOS and `versionName`/`versionCode` on Android.
+
+- **Version name** is semver, `MAJOR.MINOR.PATCH`. Bump MINOR for a release with new features, PATCH for
+  a fix-only release, MAJOR only for big breaks. Never go below an already uploaded version: App Store
+  Connect rejects a version lower than an approved one.
+- **Build number** is one global counter shared by iOS and Android. It only ever goes up and is **never**
+  reset when the version name changes. Every upload needs a number no earlier upload has used.
+- 2.0.0 builds up to +119 went to TestFlight and local test installs went up to +123, so ColdChat's own
+  versioning starts at **2.1.0+124**.
+
+A release is one commit on `main` that sets the new version, followed by a tag and a GitHub release:
+
+```bash
+# pubspec.yaml:  version: 2.2.0+125
+git commit -m "Release 2.2.0 (125)" pubspec.yaml
+git tag v2.2.0+125 && git push origin main v2.2.0+125
+gh release create v2.2.0+125 --repo c0ldplasma/chatsen --generate-notes --title "2.2.0 (125)"
+```
+
+Then build and upload from that commit (TestFlight and APK below). `--generate-notes` builds the changelog
+from the PR titles merged since the previous release tag.
+
+**Test builds never edit `pubspec.yaml`.** To tell a local install apart, pass the number at build time
+instead, e.g. `flutter build ios --release --build-number=126`. Use a number above the last release, and
+remember the next real release then has to go above it too.
+
+The app shows its version and build at the bottom of Settings (`package_info_plus`), which makes it easy
+to see which build a bug report is about.
+
 ## Analyze baseline
 
-`flutter analyze` is **not** clean on this repo — expect ~145 findings. Almost all are pre-existing:
+`flutter analyze` is **not** clean on this repo — expect ~126 findings. Almost all are pre-existing:
 `deprecated_member_use` (`onBackground`, `withOpacity`, `surfaceVariant`), unused `cookie_data.dart`
 imports, `invalid_use_of_protected_member` for `bloc.emit()` calls, and errors in `test/widget_test.dart`
 (stale scaffold test, references a non-existent `MyApp`).
@@ -59,8 +91,8 @@ xcrun devicectl device install app --device <UDID> build/ios/iphoneos/Runner.app
 xcrun devicectl device info apps --device <UDID> | grep -i coldchat
 ```
 
-Bump the build number in `pubspec.yaml` first if you want to tell the new install apart from the old one —
-otherwise step 4 shows the same version and proves nothing.
+Pass `--build-number=<N>` to step 2 if you want to tell the new install apart from the old one (see
+Versioning; don't edit `pubspec.yaml` for this). Otherwise step 4 shows the same version and proves nothing.
 
 Data survives an in-place upgrade only while the bundle ID and signing identity stay the same. Changing
 either makes iOS refuse the install outright (it fails, it does not silently wipe), and the only way
@@ -87,9 +119,8 @@ security find-generic-password -l COLDCHAT_ASC | grep '"acct"'
 Then, per release:
 
 ```bash
-# 1. Bump the build number — a build number can never be reused for a version once
-#    App Store Connect has accepted it.
-#    pubspec.yaml:  version: 2.0.0+<N>
+# 1. Make the release commit and tag (see Versioning). A build number can never be
+#    reused once App Store Connect has accepted it.
 
 # 2. Archive + export an App Store IPA. ios/ExportOptions.plist is ours
 #    (method: app-store-connect, teamID: RA25PYVUTF).
@@ -143,8 +174,8 @@ uninstall, which wipes app data. Wiring up a real release keystore is still an o
   upstream's Apple ID, team `6GNA923MZR`, and a `match` repo at `github.com/chatsen/fastlane`. Running
   `fastlane beta` would target upstream's App Store Connect app. Use the `flutter build ipa` + `altool`
   flow above instead. `ios/ExportOptions.plist` *is* ours.
-- Remotes: `origin` is upstream `chatsen/chatsen`, `fork` is `c0ldplasma/chatsen`. Push to **`fork`**.
-  `fork` is public — keep Apple IDs, device UDIDs, passwords and API keys out of committed files.
+- Remotes: `origin` is the fork `c0ldplasma/chatsen` (push here, open PRs against its `main`), `upstream`
+  is `chatsen/chatsen`. `origin` is public — keep Apple IDs, device UDIDs, passwords and API keys out of committed files.
 - `build/` is currently untracked but present in the working tree; don't commit it.
 - Twitch login uses the OAuth **implicit grant** (`response_type=token` in `lib/modal/oauth_webview.dart`),
   so there is no refresh token and an expired login can only be fixed by signing in again. See

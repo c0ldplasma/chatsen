@@ -29,7 +29,9 @@ class Modal extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: 1024.0,
-                  maxHeight: (MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.vertical) * 0.8,
+                  // Up to a small gap below the status bar, so longer sheets like
+                  // settings fit without scrolling but still read as a sheet.
+                  maxHeight: mediaQuery.size.height - mediaQuery.viewInsets.vertical - mediaQuery.padding.top - 32.0,
                 ),
                 child: SafeArea(child: child),
               ),

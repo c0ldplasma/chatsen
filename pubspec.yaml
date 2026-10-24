@@ -1,7 +1,7 @@
 name: chatsen
 description: 3rd party client for Twitch
 publish_to: 'none'
-version: 2.0.0+107
+version: 2.1.0+124
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -44,6 +44,7 @@ dependencies:
   shared_preferences: ^2.5.4
   path_provider: ^2.1.4
   image_picker: ^1.2.4
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   # flutter_test:
