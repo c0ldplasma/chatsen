@@ -242,6 +242,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get compactMessages => 'Компактный вид сообщений';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Ключевое слово';
 
   @override

@@ -242,6 +242,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get compactMessages => 'Kompaktowe wiadomości';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Wyzwalacz wiadomości';
 
   @override

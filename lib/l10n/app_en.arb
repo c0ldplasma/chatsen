@@ -144,6 +144,7 @@
   "messageAppearance": "Message appearance",
   "showTimestamps": "Show timestamps",
   "compactMessages": "Compact messages",
+  "showBadges": "Show badges",
   "messageTrigger": "Message trigger",
   "pattern": "Pattern",
   "mention": "Mention",

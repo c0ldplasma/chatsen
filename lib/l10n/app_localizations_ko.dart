@@ -242,6 +242,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get compactMessages => '메시지 컴팩트화';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => '메시지 트리거';
 
   @override

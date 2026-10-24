@@ -247,24 +247,25 @@ class ChatMessage extends StatelessWidget {
                     fontSize: (Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14.0) * messageAppearance.scale,
                   ),
                 ),
-              for (final badge in message.badges)
-                WidgetSpan(
-                  child: Tooltip(
-                    message: badge.name,
-                    child: Padding(
-                      padding: EdgeInsets.only(right: 4.0 * messageAppearance.scale),
-                      child: badge.mipmap.last.endsWith('.svg')
-                          ? SvgPicture.network(
-                              badge.mipmap.last,
-                              height: 20.0 * messageAppearance.scale,
-                            )
-                          : Image(
-                              image: CachedNetworkImageProvider(badge.mipmap.last),
-                              height: 20.0 * messageAppearance.scale,
-                            ),
+              if (messageAppearance.badges)
+                for (final badge in message.badges)
+                  WidgetSpan(
+                    child: Tooltip(
+                      message: badge.name,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 4.0 * messageAppearance.scale),
+                        child: badge.mipmap.last.endsWith('.svg')
+                            ? SvgPicture.network(
+                                badge.mipmap.last,
+                                height: 20.0 * messageAppearance.scale,
+                              )
+                            : Image(
+                                image: CachedNetworkImageProvider(badge.mipmap.last),
+                                height: 20.0 * messageAppearance.scale,
+                              ),
+                      ),
                     ),
                   ),
-                ),
               TextSpan(
                 text: '${message.user.displayName}: ',
                 style: TextStyle(

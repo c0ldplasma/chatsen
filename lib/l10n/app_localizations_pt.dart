@@ -242,6 +242,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get compactMessages => 'Mensagens compactas';
 
   @override
+  String get showBadges => 'Show badges';
+
+  @override
   String get messageTrigger => 'Gatilho de mensagem';
 
   @override
