@@ -8,15 +8,12 @@ import '../providers/emote_provider.dart';
 
 class EmoteModal extends StatelessWidget {
   final Emote emote;
-  late String? url;
+  final String? url;
 
   EmoteModal({
     super.key,
     required this.emote,
-  }) {
-    final emoteProvider = emote.provider as EmoteProvider;
-    url = emoteProvider.emoteUrl(emote.id);
-  }
+  }) : url = (emote.provider as EmoteProvider).emoteUrl(emote.id);
 
   @override
   Widget build(BuildContext context) => Padding(

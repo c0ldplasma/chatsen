@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -134,6 +135,6 @@ Future<void> importLegacySettings(
     // Clear after import so it doesn't run again
     await prefs.remove('chatsen1backup');
   } catch (e) {
-    print('Failed to import legacy settings: $e');
+    log('Failed to import legacy settings: $e');
   }
 }

@@ -2,7 +2,6 @@ import 'package:hive/hive.dart';
 
 import 'twitch/token_data.dart';
 import 'twitch/user_data.dart';
-import 'webview/cookie_data.dart';
 
 part 'twitch_account.g.dart';
 

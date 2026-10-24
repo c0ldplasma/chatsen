@@ -25,9 +25,9 @@ class Toggle extends StatelessWidget {
   Widget build(BuildContext context) => Material(
         shape: RoundedRectangleBorder(
           borderRadius: _kBorderRadius,
-          side: value ? BorderSide.none : BorderSide(color: Theme.of(context).colorScheme.onBackground.withOpacity(_kThumbOpacity), width: _kOutlineWidth),
+          side: value ? BorderSide.none : BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: _kThumbOpacity), width: _kOutlineWidth),
         ),
-        color: value ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onBackground.withOpacity(_kTrackOpacity),
+        color: value ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withValues(alpha: _kTrackOpacity),
         child: InkWell(
           borderRadius: _kBorderRadius,
           onTap: () => onChanged(!value),
@@ -46,7 +46,7 @@ class Toggle extends StatelessWidget {
                 height: value ? _kToggleActiveSize : _kToggleInactiveSize,
                 margin: const EdgeInsets.only(right: 4.0, left: 8.0),
                 decoration: BoxDecoration(
-                  color: value ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.onBackground.withOpacity(_kThumbOpacity),
+                  color: value ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.onSurface.withValues(alpha: _kThumbOpacity),
                   shape: BoxShape.circle,
                 ),
               ),

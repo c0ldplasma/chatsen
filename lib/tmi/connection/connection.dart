@@ -46,6 +46,8 @@ class Connection extends Bloc<ConnectionEvent, ConnectionState> {
       );
     });
 
+    on<ConnectionEstablished>((event, emit) => emit(event.state));
+
     on<ConnectionDisconnect>((event, emit) async {
       await close();
       emit(ConnectionDisconnected());

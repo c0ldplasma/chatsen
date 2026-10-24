@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '/data/twitch_account.dart';
+import 'connection_state.dart';
 
 class ConnectionEvent extends Equatable {
   @override
@@ -14,6 +15,17 @@ class ConnectionConnect extends ConnectionEvent {
 
   @override
   List<Object?> get props => [twitchAccount, ...super.props];
+}
+
+/// Twitch accepted the login (IRC 001). Carries the state to switch to so the
+/// client can keep a handle on it and fill in the blocked users later.
+class ConnectionEstablished extends ConnectionEvent {
+  final ConnectionConnected state;
+
+  ConnectionEstablished(this.state);
+
+  @override
+  List<Object?> get props => [state, ...super.props];
 }
 
 class ConnectionDisconnect extends ConnectionEvent {}

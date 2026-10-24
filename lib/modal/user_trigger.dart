@@ -82,7 +82,7 @@ class _UserTriggerModalState extends State<UserTriggerModal> {
                       child: Text(
                         AppLocalizations.of(context)!.cancel,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onBackground,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

@@ -173,10 +173,6 @@ class ChannelViewState extends State<ChannelView> {
   /// the text beforehand and wrote that snapshot back afterwards — which threw
   /// away anything typed in the meantime and showed nothing while it ran.
   Future<void> pickAndUploadFiles() async {
-    // Only phones have a camera worth offering; desktop goes straight to the
-    // file picker as before.
-    if (!Platform.isIOS && !Platform.isAndroid) return pickAndUploadFromLibrary();
-
     await Modal.show(
       context: context,
       child: Builder(
@@ -228,12 +224,12 @@ class ChannelViewState extends State<ChannelView> {
 
   Future<void> pickAndUploadFromLibrary() async {
     final queue = context.read<UploadQueueCubit>();
-    final picker = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
+    // Picks several files; an empty list means the user cancelled.
+    final files = await FilePicker.pickFiles(
       type: Platform.isIOS ? FileType.image : FileType.any,
     );
 
-    for (final PlatformFile file in picker?.files ?? <PlatformFile>[]) {
+    for (final file in files) {
       final path = file.path;
       if (path == null) continue;
       unawaited(queue.uploadFile(
@@ -392,7 +388,7 @@ class ChannelViewState extends State<ChannelView> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0 * (true ? 1.0 : 2.0)),
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
                                 child: Text(AppLocalizations.of(context)!.replyingTo),
                               ),
                               ChatMessage(message: replyChannelMessageChat!),
@@ -503,7 +499,7 @@ class ChannelViewState extends State<ChannelView> {
                     children: [
                       InkWell(
                         onTap: pickAndUploadFiles,
-                        child: SizedBox(
+                        child: const SizedBox(
                           width: 48.0,
                           height: 48.0,
                           child: Icon(
@@ -579,7 +575,7 @@ class ChannelViewState extends State<ChannelView> {
                   switchOutCurve: Curves.easeInCubic,
                   transitionBuilder: (child, animation) => SizeTransition(
                     sizeFactor: animation,
-                    axisAlignment: -1.0,
+                    alignment: const Alignment(-1.0, -1.0),
                     child: child,
                   ),
                   child: !emoteKeyboard

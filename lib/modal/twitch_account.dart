@@ -93,6 +93,7 @@ class TwitchAccountModal extends StatelessWidget {
           InkWell(
             onTap: () async {
               await twitchAccount.delete();
+              if (!context.mounted) return;
               Navigator.of(context).pop();
             },
             child: Padding(
@@ -158,7 +159,7 @@ class _ExpirationTextState extends State<ExpirationText> {
               ? AppLocalizations.of(context)!.expiresIn('${tokenData.expiresAt?.difference(DateTime.now())}')
               : AppLocalizations.of(context)!.expiresNever,
       style: TextStyle(
-        color: expired ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onBackground.withOpacity(0.75),
+        color: expired ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
       ),
       // style: Theme.of(context).textTheme.subtitle2,
     );

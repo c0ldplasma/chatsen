@@ -48,7 +48,7 @@ class Tile extends StatelessWidget {
                       Text(
                         subtitle!,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onBackground.withOpacity(0.75),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
                         ),
                       ),
                   ],

@@ -26,7 +26,7 @@ class UserModalHeader extends StatelessWidget {
               ),
               Positioned.fill(
                 child: Container(
-                  color: Theme.of(context).colorScheme.background.withOpacity(0.75),
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.75),
                 ),
               ),
               SizedBox(
@@ -57,7 +57,7 @@ class UserModalHeader extends StatelessWidget {
                           TextSpan(
                             children: [
                               TextSpan(text: user.displayName, style: Theme.of(context).textTheme.titleLarge),
-                              TextSpan(text: '#${user.id}', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.75))),
+                              TextSpan(text: '#${user.id}', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75))),
                             ],
                           ),
                         ),
@@ -107,7 +107,7 @@ class UserModalHeader extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 ),
-                Positioned.fill(child: Container(color: Theme.of(context).colorScheme.background.withOpacity(0.75))),
+                Positioned.fill(child: Container(color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.75))),
                 Material(
                   color: Colors.transparent,
                   child: Padding(
@@ -137,7 +137,7 @@ class UserModalHeader extends StatelessWidget {
                               TextSpan(
                                 children: [
                                   TextSpan(text: '${user.broadcastSettings.title}\n', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  TextSpan(text: '${user.stream!.game.name}\n', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).textTheme.titleMedium!.color!.withOpacity(0.75))),
+                                  TextSpan(text: '${user.stream!.game.name}\n', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).textTheme.titleMedium!.color!.withValues(alpha: 0.75))),
                                   WidgetSpan(
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,

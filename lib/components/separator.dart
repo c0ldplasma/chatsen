@@ -14,7 +14,7 @@ class Separator extends StatelessWidget {
         child: Container(
           height: axis == Axis.horizontal ? 1 : double.infinity,
           width: axis == Axis.vertical ? 1 : double.infinity,
-          color: Theme.of(context).colorScheme.onBackground.withOpacity(0.25),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25),
         ),
       );
 }

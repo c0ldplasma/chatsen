@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../tools/m3parser.dart';
+
 enum SurfaceType {
   primary,
   secondary,
@@ -52,15 +54,15 @@ class Surface extends StatelessWidget {
         foregroundColor = Theme.of(context).colorScheme.error;
         break;
       case SurfaceType.background:
-        backgroundColor = Theme.of(context).colorScheme.background;
-        foregroundColor = Theme.of(context).colorScheme.onBackground;
+        backgroundColor = Theme.of(context).colorScheme.surface;
+        foregroundColor = Theme.of(context).colorScheme.onSurface;
         break;
       case SurfaceType.surface:
         backgroundColor = Theme.of(context).colorScheme.surface;
         foregroundColor = Theme.of(context).colorScheme.onSurface;
         break;
       case SurfaceType.surfaceVariant:
-        backgroundColor = Theme.of(context).colorScheme.surfaceVariant;
+        backgroundColor = AppColors.of(context).surfaceVariant;
         foregroundColor = Theme.of(context).colorScheme.onSurfaceVariant;
         break;
       case SurfaceType.transparent:

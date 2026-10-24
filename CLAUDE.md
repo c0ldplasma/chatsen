@@ -3,8 +3,19 @@
 ColdChat — a Flutter Twitch chat client, forked from [chatsen/chatsen](https://github.com/chatsen/chatsen).
 Ships as `com.plasmari.coldchat` (Apple team `RA25PYVUTF`), which is **not** the same app as upstream.
 
+ColdChat supports **Android and iOS only**. Desktop and web support was removed; don't recreate the
+`windows/`, `macos/`, `linux/` or `web/` folders.
+
+`analysis_options.yaml` excludes `build/`, `android/` and `ios/`. Flutter itself adds an exclude for every
+platform folder that exists before each command (`AnalysisOptionsMigration` in flutter_tools), so a stray
+platform folder shows up as a change to this file.
+
 This file documents the build, install and release procedures. Everything below has been run and verified
-on macOS with Xcode 26.5 / Flutter (stable).
+on macOS with Xcode 26.5 / Flutter 3.47.8 (stable).
+
+**Flutter 3.47.8 / Dart 3.13.7 is the minimum** (enforced in `pubspec.yaml`). Older SDKs are affected by
+[GHSA-frr6-h895-5pxp](https://github.com/dart-lang/sdk/security/advisories/GHSA-frr6-h895-5pxp): `dart:io` on
+Android trusts compromised eMudhra intermediate CAs, which allows TLS MitM of e.g. the Twitch token.
 
 ## Localization
 
@@ -14,9 +25,9 @@ on macOS with Xcode 26.5 / Flutter (stable).
 flutter gen-l10n
 ```
 
-Add new strings to `app_en.arb` (the template, see `l10n.yaml`) and ideally `app_de.arb`. The other ~23
-locales fall back to English with an "N untranslated message(s)" warning — that warning is pre-existing
-and not a failure. Translations are managed via Crowdin (`crowdin.yml`).
+Add new strings to `app_en.arb` (the template, see `l10n.yaml`) and `app_de.arb`. The other ~21 locales
+fall back to English; translations for those are managed via Crowdin (`crowdin.yml`). Which strings they
+are missing is written to `build/untranslated_messages.json` instead of being printed on every build.
 
 ## Versioning
 
@@ -50,18 +61,13 @@ remember the next real release then has to go above it too.
 The app shows its version and build at the bottom of Settings (`package_info_plus`), which makes it easy
 to see which build a bug report is about.
 
-## Analyze baseline
+## Analyze and build warnings
 
-`flutter analyze` is **not** clean on this repo — expect ~126 findings. Almost all are pre-existing:
-`deprecated_member_use` (`onBackground`, `withOpacity`, `surfaceVariant`), unused `cookie_data.dart`
-imports, `invalid_use_of_protected_member` for `bloc.emit()` calls, and errors in `test/widget_test.dart`
-(stale scaffold test, references a non-existent `MyApp`).
+`flutter analyze` is **clean** — keep it at "No issues found!". `flutter build apk` and `flutter build ios`
+also run without warnings; treat any new one as something to fix, not as noise.
 
-What matters is that **your** changes add no new `error`. Check with:
-
-```bash
-flutter analyze 2>&1 | grep -E "^\s*error" | grep -v test/widget_test
-```
+`ColorScheme.surfaceVariant` is deprecated, and its replacement `surfaceContainerHighest` is a different
+tone. Use `AppColors.of(context).surfaceVariant` (`lib/tools/m3parser.dart`), which reproduces the old color.
 
 Gotcha: `ConnectionState` collides with Flutter's own `ConnectionState` from `package:flutter/material.dart`.
 In any widget file, import the TMI one with a prefix:
@@ -158,7 +164,7 @@ Uploading is irreversible — a build can be expired in TestFlight but its numbe
 
 ```bash
 flutter build apk --release
-# -> build/app/outputs/flutter-apk/app-release.apk  (~61 MB universal APK)
+# -> build/app/outputs/flutter-apk/app-release.apk  (~65 MB universal APK)
 ```
 
 **This APK is signed with the debug keystore.** `android/app/build.gradle.kts` has
@@ -176,6 +182,8 @@ uninstall, which wipes app data. Wiring up a real release keystore is still an o
   flow above instead. `ios/ExportOptions.plist` *is* ours.
 - Remotes: `origin` is the fork `c0ldplasma/chatsen` (push here, open PRs against its `main`), `upstream`
   is `chatsen/chatsen`. `origin` is public — keep Apple IDs, device UDIDs, passwords and API keys out of committed files.
+- The iOS project uses **Swift Package Manager only**; CocoaPods was removed (no `Podfile`). Don't run
+  `pod install`. Note that `ios/` and `android/` are untracked (see `.gitignore`), so changes there are local.
 - `build/` is currently untracked but present in the working tree; don't commit it.
 - Twitch login uses the OAuth **implicit grant** (`response_type=token` in `lib/modal/oauth_webview.dart`),
   so there is no refresh token and an expired login can only be fixed by signing in again. See
