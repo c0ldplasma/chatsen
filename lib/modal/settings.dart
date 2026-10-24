@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localized_locales/flutter_localized_locales.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:chatsen/l10n/app_localizations.dart';
 
 import '../components/modal.dart';
@@ -83,6 +84,20 @@ class SettingsModal extends StatelessWidget {
                 box: box,
                 boxDefault: true,
                 boxKey: 'recentMessagesChatHistory',
+              ),
+              FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  final info = snapshot.data;
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      info == null ? '' : '${AppLocalizations.of(context)!.chatsen} ${info.version} (${info.buildNumber})',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                    ),
+                  );
+                },
               ),
             ],
           );
