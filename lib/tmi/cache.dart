@@ -205,22 +205,6 @@ class EmoteBadgeCache {
   static const String globalBadgesKey = 'globalBadges';
   static const String globalUserBadgesKey = 'globalUserBadges';
   static String twitchUserEmotesKey(String userId) => 'twitchUserEmotes:$userId';
-  static const String _bttvProBadgesKey = 'bttvProBadges';
-
-  /// BetterTTV Pro badge urls by Twitch user id, oldest sighting first.
-  Map<String, String> loadBttvProBadges() {
-    final raw = box.get(_bttvProBadgesKey);
-    if (raw is! String) return {};
-    try {
-      return Map<String, String>.from(json.decode(raw) as Map);
-    } catch (_) {
-      return {};
-    }
-  }
-
-  Future<void> saveBttvProBadges(Map<String, String> badgeUrls) {
-    return box.put(_bttvProBadgesKey, json.encode(badgeUrls));
-  }
 
   String _historyKey(String channelLogin) => 'history:v2:$channelLogin';
 

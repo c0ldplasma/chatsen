@@ -29,7 +29,6 @@ class ClientChannels extends Cubit<List<Channel>> {
   }
 
   void part(Channel channel) {
-    if (channel.id != null) client.bttvSocket.part(channel.id!);
     final x = List<String>.from(channelsBox.values).indexWhere((element) => element == channel.name);
     channelsBox.deleteAt(x);
 

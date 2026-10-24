@@ -243,18 +243,6 @@ class Channel extends Bloc<ChannelEvent, ChannelState> {
     channelMessages.emit([...channelMessages.state]);
   }
 
-  /// Rebuild the messages of one user, e.g. when their BetterTTV Pro badge
-  /// becomes known.
-  void rebuildMessagesFrom(String userId) {
-    var changed = false;
-    for (final message in channelMessages.state.whereType<ChannelMessageChat>()) {
-      if (message.user.id != userId) continue;
-      message.build();
-      changed = true;
-    }
-    if (changed) channelMessages.emit([...channelMessages.state]);
-  }
-
   Future<void> refreshEmotes() async {
     if (id == null) throw 'invalid channel id';
 
