@@ -45,12 +45,12 @@ class _UserModalState extends State<UserModal> {
   Widget build(BuildContext context) => FutureBuilder<TwitchProfile?>(
         future: future,
         builder: (BuildContext context, AsyncSnapshot<TwitchProfile?> snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) return Container();
+          final loading = snapshot.connectionState != ConnectionState.done;
           final profile = snapshot.data;
           return ListView(
             shrinkWrap: true,
             children: [
-              if (profile != null) UserModalHeader(profile: profile),
+              if (loading || profile != null) UserModalHeader(profile: profile, name: widget.login),
               if (channel != null && profile != null)
                 Material(
                   color: Theme.of(context).colorScheme.secondaryContainer,
